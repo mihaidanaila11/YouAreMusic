@@ -85,7 +85,7 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
     for(let boxNumber = 0; boxNumber < numberOfBoxes; boxNumber++){
         const predictScore = getDataAtIndex(dataArray, dims, predictionIndex, boxNumber);
 
-        if(predictScore < minConfidence && (predictScore < 0.0 && predictScore > 1.0)){
+        if(predictScore < minConfidence){
             continue;
         }
 
@@ -95,7 +95,7 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
         }
     }
 
-    if(!bestPredictBox){
+    if(bestPredictBox === -1){
         return null;
     }
 
