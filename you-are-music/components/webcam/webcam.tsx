@@ -53,9 +53,8 @@ export default function Webcam({webcamCanvasRef}: WebcamProps){
     }, [webcamStream])
 
     return (
-    <div>
-    <h1>Simple Webcam with React </h1>
+    <>
       <canvas ref={webcamCanvasRef} width={640} height={640} />
-    </div>
+    </>
   );
 }

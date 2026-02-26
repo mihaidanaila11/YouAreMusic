@@ -4,17 +4,18 @@ import * as ort from 'onnxruntime-web';
 import { RefObject, useEffect, useState } from 'react';
 
 interface ModelProps{
-    webcamCanvasRef: RefObject<HTMLCanvasElement | null>,
+    webcamCanvasRef: RefObject<HTMLCanvasElement | null>;
+    setPrediction: (prediction: ModelPrediction | null) => void;
 }
 
-interface PredictionBox{
+export interface PredictionBox{
     x: number,
     y: number,
     width: number,
     height: number,
 }
 
-interface ModelPrediction{
+export interface ModelPrediction{
     predictionBox: PredictionBox,
     confidence: number,
     featuresNumber: number,
@@ -126,7 +127,8 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
     };
  }
 
-export default function Model({webcamCanvasRef} : ModelProps) {
+
+ const Model: React.FC<ModelProps> = ({ webcamCanvasRef, setPrediction }) => {
     
     const [ortSession, setOrtSession] = useState<ort.InferenceSession | null>(null);
     const [loading, setLoading] = useState(true);
@@ -170,17 +172,21 @@ export default function Model({webcamCanvasRef} : ModelProps) {
 
         const bestPrediction = pickBestPrediction(predictionData, dims, 0.5);
 
-        console.log(bestPrediction);
+        setPrediction(bestPrediction ? bestPrediction : null);
 
     }
     return(
-        <div>
-            <p>
-                {loading ? "Model is loading" : (
-                    error || !ortSession ? error : ("Model loaded.")
-                )}
-            </p>
-            {!error && ortSession && <button onClick={handleButton}>safsaf</button>}
-        </div>
+        <>
+            <div>
+                <p>
+                    {loading ? "Model is loading" : (
+                        error || !ortSession ? error : ("Model loaded.")
+                    )}
+                </p>
+                {!error && ortSession && <button onClick={handleButton}>safsaf</button>}
+            </div>
+        </>
     )
 }
+
+export default Model;
