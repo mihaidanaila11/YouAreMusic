@@ -7,6 +7,20 @@ interface ModelProps{
     webcamCanvasRef: RefObject<HTMLCanvasElement | null>,
 }
 
+interface PredictionBox{
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+}
+
+interface ModelPrediction{
+    predictionBox: PredictionBox,
+    confidence: number,
+    featuresNumber: number,
+    featues: Float32Array,
+}
+
 function imageDataToTensor(imageData: ImageDataArray){
     const [redArray, greenArray, blueArray] = new Array(new Array<number>(), new Array<number>(), new Array<number>());
 
@@ -48,6 +62,68 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
  function getDataAtIndex(dataArray: Float32Array, dims: readonly number[], attributeIndex: number,
     boxIndex: number){
     return dataArray[attributeIndex * dims[2] + boxIndex]
+ }
+
+/**
+ * Extracts best prediction from a 3D array mapped in a linear array using row-major.
+ * Assumes a tensor shape of [Batch=1, Attributes, Boxes]
+ * 
+ * @param {Float32Array} dataArray -  Flattened array containing data
+ * @param {number[]} dims - Dimensions of the data array
+ * @param {number} minConfidence - Lower limit of prediction confidence
+ * 
+ * @returns {ModelPrediction | null} - Best prediction or null if none is found
+ */
+
+ function pickBestPrediction(dataArray: Float32Array, dims: readonly number[], minConfidence: number = 0): ModelPrediction | null{
+    const numberOfBoxes = dims[2];
+    const predictionIndex = 4;
+
+    let bestPredictBox = -1;
+    let bestPredictScore = -1;
+
+    for(let boxNumber = 0; boxNumber < numberOfBoxes; boxNumber++){
+        const predictScore = getDataAtIndex(dataArray, dims, predictionIndex, boxNumber);
+
+        if(predictScore < minConfidence && (predictScore < 0.0 && predictScore > 1.0)){
+            continue;
+        }
+
+        if(predictScore > bestPredictScore){
+            bestPredictBox = boxNumber;
+            bestPredictScore = predictScore;
+        }
+    }
+
+    if(!bestPredictBox){
+        return null;
+    }
+
+    const predictionBox: PredictionBox = {
+        x: getDataAtIndex(dataArray, dims, 0, bestPredictBox),
+        y: getDataAtIndex(dataArray, dims, 1, bestPredictBox),
+        width: getDataAtIndex(dataArray, dims, 2, bestPredictBox),
+        height: getDataAtIndex(dataArray, dims, 3, bestPredictBox),
+    }
+
+    const confidenceIndex = 4;
+    const confidence = getDataAtIndex(dataArray, dims, confidenceIndex, bestPredictBox);
+
+    const featuresNumber = 21;
+    const featues = new Float32Array(featuresNumber * 3);
+    const featureIndexOffset = 5;
+
+    for(let featureIndex = 0; featureIndex < featuresNumber; featureIndex++){
+        const feature = getDataAtIndex(dataArray, dims, featureIndex + featureIndexOffset, bestPredictBox);
+        featues[featureIndex] = feature;
+    }
+
+    return {
+        predictionBox,
+        confidence,
+        featuresNumber: featuresNumber,
+        featues: featues,
+    };
  }
 
 export default function Model({webcamCanvasRef} : ModelProps) {
@@ -92,25 +168,9 @@ export default function Model({webcamCanvasRef} : ModelProps) {
         
         const dims = prediction[outputName].dims;
 
-        /*
-        Indicii 0-3: Coordonatele cutiei (centru X, centru Y, lățime, înălțime).
-        Indexul 4: Scorul de încredere 
-        Indicii 5-55: Cele 17 keypoints. Fiecare keypoint are 3 valori: (x, y, vizibilitate/încredere).
-        */
-        
-        let bestPredictBox = -1;
-        let bestPredictScore = -1;
+        const bestPrediction = pickBestPrediction(predictionData, dims, 0.5);
 
-        for(let boxNumeber = 0; boxNumeber < dims[2]; boxNumeber++){
-            const predictScore = getDataAtIndex(predictionData, dims, 4, boxNumeber);
-
-            if(predictScore > bestPredictScore){
-                bestPredictScore = predictScore;
-                bestPredictBox = boxNumeber;
-            }
-        }
-
-        console.log(bestPredictBox, bestPredictScore);
+        console.log(bestPrediction);
 
     }
     return(
