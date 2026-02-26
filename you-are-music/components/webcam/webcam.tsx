@@ -30,7 +30,7 @@ export default function Webcam({webcamCanvasRef}: WebcamProps){
         if(!canvas){
             return;
         }
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext('2d', { willReadFrequently: true });
         if(!context){
             return;
         }
@@ -55,7 +55,7 @@ export default function Webcam({webcamCanvasRef}: WebcamProps){
     return (
     <div>
     <h1>Simple Webcam with React </h1>
-      <canvas ref={webcamCanvasRef} width={640} height={480} />
+      <canvas ref={webcamCanvasRef} width={640} height={640} />
     </div>
   );
 }
