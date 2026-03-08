@@ -111,19 +111,20 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
     const confidence = getDataAtIndex(dataArray, dims, confidenceIndex, bestPredictBox);
 
     const featuresNumber = 21;
-    const featues = new Float32Array(featuresNumber * 3);
+    const featureGroupSize = 3;
+    const features = new Float32Array(featuresNumber * featureGroupSize);
     const featureIndexOffset = 5;
 
-    for(let featureIndex = 0; featureIndex < featuresNumber; featureIndex++){
+    for(let featureIndex = 0; featureIndex < featuresNumber * featureGroupSize; featureIndex++){
         const feature = getDataAtIndex(dataArray, dims, featureIndex + featureIndexOffset, bestPredictBox);
-        featues[featureIndex] = feature;
+        features[featureIndex] = feature;
     }
 
     return {
         predictionBox,
         confidence,
         featuresNumber: featuresNumber,
-        featues: featues,
+        featues: features,
     };
  }
 

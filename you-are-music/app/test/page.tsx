@@ -17,14 +17,12 @@ const ModelRunner = dynamic(() => import('@/components/model/model'), {
   * @returns - None
   */
 
- export function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasElement){
+function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasElement){
     const canvasContext = canvas.getContext("2d");
 
     if(!canvasContext){
         return;
     }
-
-    canvasContext.clearRect(0,0,canvas.width, canvas.height);
 
     canvasContext.strokeStyle = "red";
     canvasContext.beginPath()
@@ -38,6 +36,35 @@ const ModelRunner = dynamic(() => import('@/components/model/model'), {
     canvasContext.stroke();
  }
 
+ function drawPredictionKeypoints(features: Float32Array, featuresNumber: number, canvas: HTMLCanvasElement){
+    const featureDataNumber = features.length / featuresNumber;
+    const canvasContext = canvas.getContext("2d");
+    if(!canvasContext) return;
+
+    canvasContext.fillStyle = "green";
+
+    console.log(features);
+
+    for(let featureIndex = 0; featureIndex < featuresNumber; featureIndex++){
+        const xPos = features[featureIndex * featureDataNumber];
+        const yPos = features[featureIndex * featureDataNumber + 1];
+        console.log(xPos, yPos);
+
+        canvasContext.beginPath();
+        canvasContext.arc(xPos, yPos, 5, 0, 2*Math.PI);
+        canvasContext.fill();
+    }
+ }
+
+function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement){
+    const canvasContext = canvas.getContext("2d");
+    if(!canvasContext) return;
+    
+    canvasContext.clearRect(0,0,canvas.width, canvas.height);
+    drawPredictionBox(prediction.predictionBox, canvas);
+    drawPredictionKeypoints(prediction.featues, prediction.featuresNumber,canvas);
+    
+}
 
 export default function Test() {
     const webcamCanvas = useRef<HTMLCanvasElement | null>(null);
@@ -56,8 +83,8 @@ export default function Test() {
                 overlayCanvas.current.height);
             return;
         }
-        console.log(prediction);
-        drawPredictionBox(prediction.predictionBox, overlayCanvas.current);
+        drawPrediction(prediction, overlayCanvas.current);
+    
     }, [prediction])
     
     return(
