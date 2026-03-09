@@ -1,10 +1,21 @@
 import { FilesetResolver, HandLandmarker, Landmark } from '@mediapipe/tasks-vision';
 import { RefObject, useEffect, useState } from 'react';
-import { ModelPrediction } from './model';
 
 interface HandTrackerProps{
     videoStream: RefObject<HTMLVideoElement | null>,
     setPrediction: (prediction: ModelPrediction | null) => void,
+}
+
+export interface PredictionBox{
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+}
+
+export interface ModelPrediction{
+    predictionBox?: PredictionBox,
+    features: Landmark[]
 }
 
 export default function HandTracker({ videoStream, setPrediction } : HandTrackerProps){

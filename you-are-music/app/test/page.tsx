@@ -1,7 +1,7 @@
 'use client';
 
 import HandTracker from '@/components/model/mediapipeModel';
-import { ModelPrediction, PredictionBox } from '@/components/model/model';
+import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
 import Webcam from '@/components/webcam/webcam';
 import { Landmark } from '@mediapipe/tasks-vision';
 import dynamic from 'next/dynamic';
