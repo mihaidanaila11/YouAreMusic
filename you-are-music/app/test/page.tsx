@@ -1,14 +1,11 @@
 'use client';
 
-import { ModelPrediction, PredictionBox } from '@/components/model/model';
+import HandTracker from '@/components/model/mediapipeModel';
+import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
 import Webcam from '@/components/webcam/webcam';
-import dynamic from 'next/dynamic';
-import { constrainedMemory } from 'process';
+import { Landmark } from '@mediapipe/tasks-vision';
 import { useEffect, useRef, useState } from 'react';
 
-const ModelRunner = dynamic(() => import('@/components/model/model'), {
-    ssr: false,
-});
 
 /**
   * 
@@ -36,24 +33,17 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     canvasContext.stroke();
  }
 
- function drawPredictionKeypoints(features: Float32Array, featuresNumber: number, canvas: HTMLCanvasElement){
-    const featureDataNumber = features.length / featuresNumber;
+ function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement){
     const canvasContext = canvas.getContext("2d");
     if(!canvasContext) return;
 
     canvasContext.fillStyle = "green";
 
-    console.log(features);
-
-    for(let featureIndex = 0; featureIndex < featuresNumber; featureIndex++){
-        const xPos = features[featureIndex * featureDataNumber];
-        const yPos = features[featureIndex * featureDataNumber + 1];
-        console.log(xPos, yPos);
-
+    features.forEach(landmark => {
         canvasContext.beginPath();
-        canvasContext.arc(xPos, yPos, 5, 0, 2*Math.PI);
+        canvasContext.arc(landmark.x, landmark.y, 5, 0, 2*Math.PI);
         canvasContext.fill();
-    }
+    })
  }
 
 function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement){
@@ -61,14 +51,17 @@ function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement){
     if(!canvasContext) return;
     
     canvasContext.clearRect(0,0,canvas.width, canvas.height);
-    drawPredictionBox(prediction.predictionBox, canvas);
-    drawPredictionKeypoints(prediction.featues, prediction.featuresNumber,canvas);
+    if (prediction.predictionBox)
+        drawPredictionBox(prediction.predictionBox, canvas);
+    
+    drawPredictionKeypoints(prediction.features,canvas);
     
 }
 
 export default function Test() {
     const webcamCanvas = useRef<HTMLCanvasElement | null>(null);
     const overlayCanvas = useRef<HTMLCanvasElement | null>(null);
+    const videoStream = useRef<HTMLVideoElement | null>(null);
 
     const [prediction, setPrediction] = useState<ModelPrediction | null>(null);
 
@@ -89,13 +82,17 @@ export default function Test() {
     
     return(
         <>
-        <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/>
+        <HandTracker 
+        videoStream={videoStream}
+        setPrediction={setPrediction}
+        />
+        {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
 
         <div className='relative'>
             <canvas 
             ref = {overlayCanvas}
             width={640} height={640} className='absolute top-0 left-0 '></canvas>
-            <Webcam webcamCanvasRef={webcamCanvas} />
+            <Webcam videoRef={videoStream}/>
         </div>
         </>
     )
