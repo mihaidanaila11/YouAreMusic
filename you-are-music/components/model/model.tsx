@@ -1,5 +1,6 @@
 'use client';
 
+import { Landmark } from '@mediapipe/tasks-vision';
 import * as ort from 'onnxruntime-web';
 import { RefObject, useEffect, useState } from 'react';
 
@@ -16,13 +17,11 @@ export interface PredictionBox{
 }
 
 export interface ModelPrediction{
-    predictionBox: PredictionBox,
-    confidence: number,
-    featuresNumber: number,
-    featues: Float32Array,
+    predictionBox?: PredictionBox,
+    features: Landmark[]
 }
 
-function imageDataToTensor(imageData: ImageDataArray){
+function imageDataToTensor(imageData: ImageDataArray, dims: number[]){
     const [redArray, greenArray, blueArray] = new Array(new Array<number>(), new Array<number>(), new Array<number>());
 
     for(let channelIndex = 0; channelIndex < imageData.length; channelIndex += 4){
@@ -34,7 +33,7 @@ function imageDataToTensor(imageData: ImageDataArray){
     const transposedData = redArray.concat(greenArray).concat(blueArray);
     const normalisedData = new Float32Array(transposedData.map(value => value / 255.0));
 
-    const inputTensor = new ort.Tensor('float32', normalisedData, [1, 3, 640, 640]);
+    const inputTensor = new ort.Tensor('float32', normalisedData, dims);
 
     return inputTensor;
 }
@@ -42,9 +41,7 @@ function imageDataToTensor(imageData: ImageDataArray){
 async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
     const inputFeed: Record<string, ort.Tensor> = {};
     inputFeed[session.inputNames[0]] = inputTensor;
-
     const results = await session.run(inputFeed);
-
     return results
  }
 
@@ -60,7 +57,7 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
   * @returns {number}  Data found in the given batch number at the given index
   */
 
- function getDataAtIndex(dataArray: Float32Array, dims: readonly number[], attributeIndex: number,
+ function getDataAtIndex(dataArray: Float32Array | Int8Array, dims: readonly number[], attributeIndex: number,
     boxIndex: number){
     return dataArray[attributeIndex * dims[2] + boxIndex]
  }
@@ -76,7 +73,7 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
  * @returns {ModelPrediction | null} - Best prediction or null if none is found
  */
 
- function pickBestPrediction(dataArray: Float32Array, dims: readonly number[], minConfidence: number = 0): ModelPrediction | null{
+ function pickBestPrediction(dataArray: Float32Array | Int8Array, dims: readonly number[], minConfidence: number = 0): ModelPrediction | null{
     const numberOfBoxes = dims[2];
     const predictionIndex = 4;
 
@@ -134,12 +131,13 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
     const [ortSession, setOrtSession] = useState<ort.InferenceSession | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<String | null>(null);
-
     useEffect(() => {
         async function loadModel(){
             try{
-                const session = await ort.InferenceSession.create('/model.onnx');
+                const session = await ort.InferenceSession.create('/model3.onnx');
+                console.log(session);
                 setOrtSession(session);
+
                 setLoading(false);
             }
             catch(error){
@@ -162,16 +160,23 @@ async function predict(session: ort.InferenceSession, inputTensor: ort.Tensor){
         if(!rawImageData){
             return;
         }
+        const inputMetadata = ortSession.inputMetadata[0] as ort.InferenceSession.TensorValueMetadata;
 
-        const imageTensor = imageDataToTensor(rawImageData);
+        const imageTensor = imageDataToTensor(rawImageData, inputMetadata.shape as number[]);
 
         const prediction = await predict(ortSession, imageTensor);
-        const outputName = ortSession.outputNames[0];
-        const predictionData = prediction[outputName].data as Float32Array;
+        const outputName = "Identity"
+        const predictionData = prediction[outputName].data as Int8Array;
+        console.log(predictionData);
         
         const dims = prediction[outputName].dims;
 
-        const bestPrediction = pickBestPrediction(predictionData, dims, 0.5);
+        
+        // const bestPrediction = pickBestPrediction(predictionData, dims, 0.5);
+        const bestPrediction = {
+            featuresNumber: 21,
+            featues: predictionData
+        } as ModelPrediction
 
         setPrediction(bestPrediction ? bestPrediction : null);
 
