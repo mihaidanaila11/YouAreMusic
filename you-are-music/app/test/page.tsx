@@ -4,13 +4,8 @@ import HandTracker from '@/components/model/mediapipeModel';
 import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
 import Webcam from '@/components/webcam/webcam';
 import { Landmark } from '@mediapipe/tasks-vision';
-import dynamic from 'next/dynamic';
-import { constrainedMemory } from 'process';
 import { useEffect, useRef, useState } from 'react';
 
-const ModelRunner = dynamic(() => import('@/components/model/model'), {
-    ssr: false,
-});
 
 /**
   * 
