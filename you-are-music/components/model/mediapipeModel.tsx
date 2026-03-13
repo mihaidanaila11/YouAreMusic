@@ -33,7 +33,7 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
                 );
                 
-                const handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                const createdLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
                         delegate: "GPU" 
@@ -42,9 +42,9 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                     numHands: 2
                 });
 
-                console.log("handLandmarker", handLandmarker);
+                console.log("handLandmarker", createdLandmarker);
 
-                setHandLandmarker(handLandmarker);
+                setHandLandmarker(createdLandmarker);
                 setLoading(false); 
 
             }
@@ -52,15 +52,22 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                 setError("There was an error loading the model.")
                 setLoading(false);
             }
-            
         }
 
         setupModel();
-    }, [])
+        
+    }, []);
+
+    useEffect( () => {
+        if(!handLandmarker)
+            return;
+        requestAnimationFrame(predict);
+    }, [handLandmarker]);
 
     const predict = () => {
         if(!videoStream.current || !handLandmarker){
             console.log(videoStream.current, handLandmarker);
+            requestAnimationFrame(predict);
             return;
         }
             
@@ -68,8 +75,10 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
         const timeStamp = performance.now();
         const prediction = handLandmarker.detectForVideo(videoStream.current, timeStamp);
 
-        if(!prediction || !prediction.landmarks || prediction.landmarks.length <= 0)
+        if(!prediction || !prediction.landmarks || prediction.landmarks.length <= 0){
+            requestAnimationFrame(predict);
             return;
+        }
 
         const videoSize = {
             width: videoStream.current.width,
