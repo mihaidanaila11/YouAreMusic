@@ -3,7 +3,7 @@ import { RefObject, useEffect, useState } from 'react';
 
 interface HandTrackerProps{
     videoStream: RefObject<HTMLVideoElement | null>,
-    setPrediction: (prediction: ModelPrediction | null) => void,
+    setPrediction: (prediction: ModelPrediction[] | null) => void,
 }
 
 export interface PredictionBox{
@@ -42,7 +42,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                     numHands: 2
                 });
 
-                console.log("handLandmarker", createdLandmarker);
 
                 setHandLandmarker(createdLandmarker);
                 setLoading(false); 
@@ -85,20 +84,25 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             height: videoStream.current.height,
         }
 
-        const landmarks: Landmark[] = prediction.landmarks[0].map(landmark => {
-            return{
-                x: landmark.x * videoSize.width,
-                y: landmark.y * videoSize.height,
-                z: landmark.z,
-                visibility: landmark.visibility,
-            }
+        const preductions: ModelPrediction[] = prediction.landmarks.map( landmarkList => {
+            const landmarks: Landmark[] = landmarkList.map(landmark => {
+                return{
+                    x: landmark.x * videoSize.width,
+                    y: landmark.y * videoSize.height,
+                    z: landmark.z,
+                    visibility: landmark.visibility,
+                }
+            });
+
+            return{features: landmarks}
         });
+            
 
-        const newPrediction: ModelPrediction = {
-            features: landmarks
-        }
+        // const newPrediction: ModelPrediction = {
+        //     features: landmarks
+        // }
 
-        setPrediction(newPrediction);
+        setPrediction(preductions);
         requestAnimationFrame(predict);
     }
 
