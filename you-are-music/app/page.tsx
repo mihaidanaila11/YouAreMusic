@@ -50,7 +50,6 @@ function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement){
     const canvasContext = canvas.getContext("2d");
     if(!canvasContext) return;
     
-    canvasContext.clearRect(0,0,canvas.width, canvas.height);
     if (prediction.predictionBox)
         drawPredictionBox(prediction.predictionBox, canvas);
     
@@ -63,28 +62,37 @@ export default function Test() {
     const overlayCanvas = useRef<HTMLCanvasElement | null>(null);
     const videoStream = useRef<HTMLVideoElement | null>(null);
 
-    const [prediction, setPrediction] = useState<ModelPrediction | null>(null);
+    const [predictions, setPredictions] = useState<ModelPrediction[] | null>(null);
 
     useEffect(() => {
         if(!overlayCanvas.current){
             return;
         }
 
-        if(!prediction){
-            const canvasContext = overlayCanvas.current.getContext("2d");
+        const canvasContext = overlayCanvas.current.getContext("2d");
+
+        if(!predictions){
+            
             canvasContext?.clearRect(0,0,overlayCanvas.current.width, 
                 overlayCanvas.current.height);
             return;
         }
-        drawPrediction(prediction, overlayCanvas.current);
+        canvasContext?.clearRect(0,0,overlayCanvas.current.width, overlayCanvas.current.height);
+        predictions.forEach( (prediction) => {
+            if(!overlayCanvas.current){
+            return;
+            }
+            
+            drawPrediction(prediction, overlayCanvas.current);
+        })
     
-    }, [prediction])
+    }, [predictions])
     
     return(
         <>
         <HandTracker 
         videoStream={videoStream}
-        setPrediction={setPrediction}
+        setPrediction={setPredictions}
         />
         {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
 
