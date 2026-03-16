@@ -1,7 +1,7 @@
 import { Dispatch, MouseEvent, SetStateAction, SVGProps, useEffect, useRef, useState } from "react";
+import { mapValues } from "@/utils/Math";
 
 interface knobProps{
-    inputValue: number | undefined,
     setValue: Dispatch<SetStateAction<number>>
     minValue?: number,
     maxValue?: number,
@@ -10,11 +10,7 @@ interface knobProps{
     step?: number,
 }
 
-const mapValues = (value: number, inputMin: number, inputMax: number, outputMin: number, outputMax: number): number => {
-    return (value) * (outputMax - outputMin) / (inputMax - inputMin) + outputMin;
-}
-
-const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, step }: knobProps) => {
+const Knob = ({setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, step }: knobProps) => {
 
     useEffect(() => {
         if(defaultValue){
@@ -22,9 +18,6 @@ const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaul
             setCurrent(defaultValue);
         } 
     }, [])
-    const onValueChange = (e: any) => {
-        setValue(parseFloat(e.target.value));
-    }
 
     // ------------
 
@@ -44,7 +37,7 @@ const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaul
         if(!isDragged) return;
 
         const handleMouseMove = (event: globalThis.MouseEvent) => {
-            const sensitivity = 0.1;
+            const sensitivity = maxValue / 100;
 
             const currentYPos = event.clientY;
             const delta = startYRef.current - currentYPos;
@@ -73,7 +66,6 @@ const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaul
         
 
         return () => {
-            console.log("stop")
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         }
@@ -101,8 +93,6 @@ const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaul
 
         const valueLineLen = Math.max(0, Math.min(circleUsableLen * valuePercent, circleUsableLen));
 
-        console.log(valueLineLen, circleUsableLen)
-
         valueCircleRef.current.setAttribute("stroke-dasharray", `${valueLineLen}, ${circumference - valueLineLen}`);
     }, [currentValue]);
 
@@ -126,13 +116,6 @@ const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaul
 
     return(
         <div>
-            {/* <div>
-                <label>{label}</label>
-                <input type="range"
-                value={inputValue} min={minValue} max={maxValue} onChange={onValueChange} step={step} />
-                <span>{inputValue}</span>
-            </div> */}
-
             <span>{label}</span>
 
             <div onMouseDown={handleMouseDown} className="w-15 aspect-square select-none relative overflow-show">
@@ -159,8 +142,6 @@ const Knob = ({inputValue, setValue, minValue = 0, maxValue = 100, label, defaul
                     <div className="bg-red-500 w-1/12 h-1/3 rounded-full absolute top-0 left-1/2 -translate-x-1/2" />
                 </div>
             </div>
-
-            
             {currentValue.toFixed(2)}
             
         </div>

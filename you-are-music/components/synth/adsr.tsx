@@ -94,38 +94,35 @@ const Adsr = ( {synthRef}: AdsrProps ) => {
                 <Line options={options} data={chartData}/>
             </div>
             
-            
-            <Knob
-            minValue={0}
-            maxValue={10}
-            step={0.1}
-            inputValue={attackTime}
-            setValue={setAttack}
-            label="Attack" />
+            <div className="flex">
+                <Knob
+                minValue={0}
+                maxValue={10}
+                step={0.1}
+                setValue={setAttack}
+                label="Attack" />
 
-            <Knob
-            minValue={0}
-            maxValue={10}
-            step={0.1}
-            inputValue={decayTime}
-            setValue={setDecay}
-            label="Decay" />
+                <Knob
+                minValue={0}
+                maxValue={10}
+                step={0.1}
+                setValue={setDecay}
+                label="Decay" />
 
-            <Knob
-            minValue={0}
-            maxValue={1}
-            step={0.1}
-            inputValue={sustainValue}
-            setValue={setSustain}
-            label="Sustain" />
+                <Knob
+                minValue={0}
+                maxValue={1}
+                step={0.1}
+                setValue={setSustain}
+                label="Sustain" />
 
-            <Knob
-            minValue={0}
-            maxValue={10}
-            step={0.1}
-            inputValue={releaseTime}
-            setValue={setRelease}
-            label="Release" />
+                <Knob
+                minValue={0}
+                maxValue={10}
+                step={0.1}
+                setValue={setRelease}
+                label="Release" />
+            </div>
         </div>
     )
 }
