@@ -10,9 +10,8 @@ const Synth = () => {
 
     return(
         <div>
-            <Adsr synthRef={synthRef}/>
             <SynthController synthRef={synthRef}/>
-            
+            <Adsr synthRef={synthRef}/>
         </div>
     )
 };

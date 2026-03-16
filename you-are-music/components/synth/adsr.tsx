@@ -42,7 +42,6 @@ const Adsr = ( {synthRef}: AdsrProps ) => {
             sustain: sustainValue,
             release: releaseTime
         });
-        console.log(attackTime, decayTime, sustainValue, releaseValue);
     }, [graphPoints])
 
     Chart.register(
@@ -126,8 +125,7 @@ const Adsr = ( {synthRef}: AdsrProps ) => {
             step={0.1}
             inputValue={releaseTime}
             setValue={setRelease}
-            label="Release"
-            defaultValue={29} />
+            label="Release" />
         </div>
     )
 }
