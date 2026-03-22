@@ -127,10 +127,16 @@ const Knob = ({setValue, minValue = 0, maxValue = 100, label, defaultValue = max
         
     }, [currentValue]);
 
+    const rightClickHandler = (e: MouseEvent) => {
+        e.preventDefault();
+        console.log("right click");
+        return false;
+    }
+
     // ------------
 
     return(
-        <div>
+        <div onContextMenu={rightClickHandler} className="w-fit">
             <span>{label}</span>
 
             <div onMouseDown={handleMouseDown} className="w-15 aspect-square select-none relative overflow-show">

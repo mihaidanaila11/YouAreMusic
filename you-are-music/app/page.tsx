@@ -2,6 +2,7 @@
 
 import HandTracker from '@/components/model/mediapipeModel';
 import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
+import Synth from '@/components/synth/synth';
 import Webcam from '@/components/webcam/webcam';
 import { Landmark } from '@mediapipe/tasks-vision';
 import { useEffect, useRef, useState } from 'react';
@@ -33,11 +34,11 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     canvasContext.stroke();
  }
 
- function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement){
+ function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement, color: string){
     const canvasContext = canvas.getContext("2d");
     if(!canvasContext) return;
 
-    canvasContext.fillStyle = "green";
+    canvasContext.fillStyle = color;
 
     features.forEach(landmark => {
         canvasContext.beginPath();
@@ -46,14 +47,14 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     })
  }
 
-function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement){
+function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement, color: string){
     const canvasContext = canvas.getContext("2d");
     if(!canvasContext) return;
     
     if (prediction.predictionBox)
         drawPredictionBox(prediction.predictionBox, canvas);
     
-    drawPredictionKeypoints(prediction.features,canvas);
+    drawPredictionKeypoints(prediction.features,canvas, color);
     
 }
 
@@ -78,12 +79,12 @@ export default function Test() {
             return;
         }
         canvasContext?.clearRect(0,0,overlayCanvas.current.width, overlayCanvas.current.height);
-        predictions.forEach( (prediction) => {
+        predictions.forEach( (prediction, index) => {
             if(!overlayCanvas.current){
             return;
             }
             
-            drawPrediction(prediction, overlayCanvas.current);
+            drawPrediction(prediction, overlayCanvas.current, index === 0 ? "green" : "yellow");
         })
     
     }, [predictions])
@@ -102,6 +103,8 @@ export default function Test() {
             width={640} height={640} className='absolute top-0 left-0 '></canvas>
             <Webcam videoRef={videoStream}/>
         </div>
+
+        <Synth />
         </>
     )
 }

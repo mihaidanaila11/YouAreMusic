@@ -1,3 +1,4 @@
+import { controlBus } from '@/services/ControlManager';
 import { FilesetResolver, HandLandmarker, Landmark } from '@mediapipe/tasks-vision';
 import { RefObject, useEffect, useState } from 'react';
 
@@ -101,6 +102,8 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
             return{features: landmarks}
         });
+
+        controlBus.publish(preductions[0].features[0].x, preductions[0].features[0].y);
             
 
         // const newPrediction: ModelPrediction = {
