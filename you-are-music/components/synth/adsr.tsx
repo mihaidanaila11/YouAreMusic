@@ -98,28 +98,24 @@ const Adsr = ( {synthRef}: AdsrProps ) => {
                 <Knob
                 minValue={0}
                 maxValue={10}
-                step={0.1}
                 setValue={setAttack}
                 label="Attack" />
 
                 <Knob
                 minValue={0}
                 maxValue={10}
-                step={0.1}
                 setValue={setDecay}
                 label="Decay" />
 
                 <Knob
                 minValue={0}
                 maxValue={1}
-                step={0.1}
                 setValue={setSustain}
                 label="Sustain" />
 
                 <Knob
                 minValue={0}
                 maxValue={10}
-                step={0.1}
                 setValue={setRelease}
                 label="Release" />
             </div>

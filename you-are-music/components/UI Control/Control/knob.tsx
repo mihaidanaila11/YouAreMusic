@@ -1,16 +1,18 @@
 import { Dispatch, MouseEvent, SetStateAction, SVGProps, useEffect, useRef, useState } from "react";
 import { mapValues } from "@/utils/Math";
 
+type KnobMode = "linear" | "exponential";
+
 interface knobProps{
     setValue: Dispatch<SetStateAction<number>>
     minValue?: number,
     maxValue?: number,
     label?: string,
     defaultValue?: number,
-    step?: number,
+    mode?: KnobMode,
 }
 
-const Knob = ({setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, step }: knobProps) => {
+const Knob = ({setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear" }: knobProps) => {
 
     useEffect(() => {
         if(defaultValue){
@@ -43,11 +45,21 @@ const Knob = ({setValue, minValue = 0, maxValue = 100, label, defaultValue = max
             const delta = startYRef.current - currentYPos;
 
             let newValue = currentValue + delta * sensitivity;
+
             
             
             // Clamped values between min and max
             newValue = Math.max(minValue, Math.min(maxValue, newValue));
-            const valuePercent = newValue / maxValue;
+
+            let valuePercent = (newValue - minValue) / (maxValue - minValue);
+
+            if(mode === "exponential"){
+                const expValue = minValue * Math.pow(maxValue / minValue, valuePercent);
+                newValue = expValue;
+
+                valuePercent = (newValue - minValue) / (maxValue - minValue);
+            }
+            
             const newRotation = Math.round(mapValues(valuePercent, 0, 1, -135, 135));
             
             setRotation(newRotation);
@@ -110,6 +122,9 @@ const Knob = ({setValue, minValue = 0, maxValue = 100, label, defaultValue = max
     // Handle outside effect
     useEffect(() => {
         setValue(currentValue);
+        
+        const valuePercent = (currentValue - minValue) / (maxValue - minValue);
+        
     }, [currentValue]);
 
     // ------------
