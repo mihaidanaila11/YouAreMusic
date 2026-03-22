@@ -69,6 +69,11 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             requestAnimationFrame(predict);
             return;
         }
+
+        if(videoStream.current.videoWidth === 0 || videoStream.current.videoHeight <= 0){
+            requestAnimationFrame(predict);
+            return;
+        }
             
 
         const timeStamp = performance.now();
