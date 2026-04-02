@@ -2,8 +2,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 import Knob from "../UI Control/Control/knob";
 import { Line } from "react-chartjs-2";
-import { ChartData, ChartOptions } from "chart.js";
-import { controlBus, Listener } from "@/services/ControlManager";
+import { Chart, ChartData, ChartOptions } from "chart.js";
 import { mapValues } from "@/utils/Math";
 
 interface FilterProps{
@@ -18,6 +17,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
     const [frequency, setFreq] = useState<number>(1500);
 
     const chartDataRef = useRef<ChartData<"line", number[], number> | null>(null);
+    const chartLineRef = useRef<Chart<"line"> | null>(null);
 
     useEffect(() => {
         if(!filterRef.current){
@@ -31,13 +31,18 @@ const FilterController = ( {filterRef}: FilterProps) => {
         filterRef.current.frequency.rampTo(frequency, 0.05);
 
         const chartLabels = getChartLabels(30);
+        const chartValues = getChartValues(chartLabels);
 
         chartDataRef.current = {
             labels: chartLabels,
             datasets: [{
-                data: getChartValues(chartLabels)
+                data: chartValues
             }]
         };
+
+        if(chartLineRef.current){
+            chartLineRef.current.update();
+        }
 
     }, [frequency]);
 
@@ -55,9 +60,9 @@ const FilterController = ( {filterRef}: FilterProps) => {
             setFreq(mapedValue);
         }
 
-        const unsubscribe = controlBus.subscribe(listener);
+        // const unsubscribe = controlBus.subscribe(listener);
 
-        return () => unsubscribe();
+        // return () => unsubscribe();
     }, [listenValue])
 
     const getChartLabels = (resolution: number) => {
@@ -118,7 +123,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
     <div>
         {chartDataRef.current && 
         <div className="w-sm">
-            <Line data={chartDataRef.current} options={options} />
+            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
         </div>
         }
 

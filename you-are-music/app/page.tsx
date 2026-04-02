@@ -39,12 +39,25 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     if(!canvasContext) return;
 
     canvasContext.fillStyle = color;
+    let [meanX, meanY] = [0, 0];
 
-    features.forEach(landmark => {
+    features.forEach((landmark, index) => {
+        meanX += landmark.x;
+        meanY += landmark.y;
+        if(![4,8,12,16,20, 0, 9].includes(index)) return;
         canvasContext.beginPath();
         canvasContext.arc(landmark.x, landmark.y, 5, 0, 2*Math.PI);
         canvasContext.fill();
-    })
+    });
+
+    meanX /= features.length;
+    meanY /= features.length;
+
+    canvasContext.fillStyle = "red";
+
+    canvasContext.beginPath();
+        canvasContext.arc(meanX, meanY, 5, 0, 2*Math.PI);
+        canvasContext.fill();
  }
 
 function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement, color: string){
