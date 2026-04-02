@@ -2,6 +2,7 @@
 
 import HandTracker from '@/components/model/mediapipeModel';
 import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
+import Synth from '@/components/synth/synth';
 import Webcam from '@/components/webcam/webcam';
 import { Landmark } from '@mediapipe/tasks-vision';
 import { useEffect, useRef, useState } from 'react';
@@ -33,27 +34,40 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     canvasContext.stroke();
  }
 
- function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement){
+ function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement, color: string){
     const canvasContext = canvas.getContext("2d");
     if(!canvasContext) return;
 
-    canvasContext.fillStyle = "green";
+    canvasContext.fillStyle = color;
+    let [meanX, meanY] = [0, 0];
 
-    features.forEach(landmark => {
+    features.forEach((landmark, index) => {
+        meanX += landmark.x;
+        meanY += landmark.y;
+        if(![4,8,12,16,20, 0, 9].includes(index)) return;
         canvasContext.beginPath();
         canvasContext.arc(landmark.x, landmark.y, 5, 0, 2*Math.PI);
         canvasContext.fill();
-    })
+    });
+
+    meanX /= features.length;
+    meanY /= features.length;
+
+    canvasContext.fillStyle = "red";
+
+    canvasContext.beginPath();
+        canvasContext.arc(meanX, meanY, 5, 0, 2*Math.PI);
+        canvasContext.fill();
  }
 
-function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement){
+function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement, color: string){
     const canvasContext = canvas.getContext("2d");
     if(!canvasContext) return;
     
     if (prediction.predictionBox)
         drawPredictionBox(prediction.predictionBox, canvas);
     
-    drawPredictionKeypoints(prediction.features,canvas);
+    drawPredictionKeypoints(prediction.features,canvas, color);
     
 }
 
@@ -78,12 +92,12 @@ export default function Test() {
             return;
         }
         canvasContext?.clearRect(0,0,overlayCanvas.current.width, overlayCanvas.current.height);
-        predictions.forEach( (prediction) => {
+        predictions.forEach( (prediction, index) => {
             if(!overlayCanvas.current){
             return;
             }
             
-            drawPrediction(prediction, overlayCanvas.current);
+            drawPrediction(prediction, overlayCanvas.current, index === 0 ? "green" : "yellow");
         })
     
     }, [predictions])
@@ -102,6 +116,8 @@ export default function Test() {
             width={640} height={640} className='absolute top-0 left-0 '></canvas>
             <Webcam videoRef={videoStream}/>
         </div>
+
+        <Synth />
         </>
     )
 }

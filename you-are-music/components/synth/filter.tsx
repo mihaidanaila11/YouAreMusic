@@ -2,7 +2,8 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
 import Knob from "../UI Control/Control/knob";
 import { Line } from "react-chartjs-2";
-import { ChartData, ChartOptions } from "chart.js";
+import { Chart, ChartData, ChartOptions } from "chart.js";
+import { mapValues } from "@/utils/Math";
 
 interface FilterProps{
     filterRef: RefObject<Tone.Filter | null>,
@@ -16,6 +17,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
     const [frequency, setFreq] = useState<number>(1500);
 
     const chartDataRef = useRef<ChartData<"line", number[], number> | null>(null);
+    const chartLineRef = useRef<Chart<"line"> | null>(null);
 
     useEffect(() => {
         if(!filterRef.current){
@@ -26,18 +28,42 @@ const FilterController = ( {filterRef}: FilterProps) => {
     useEffect(() => {
         if(!filterRef.current) return;
 
-        filterRef.current.frequency.value = frequency;
+        filterRef.current.frequency.rampTo(frequency, 0.05);
 
         const chartLabels = getChartLabels(30);
+        const chartValues = getChartValues(chartLabels);
 
         chartDataRef.current = {
             labels: chartLabels,
             datasets: [{
-                data: getChartValues(chartLabels)
+                data: chartValues
             }]
-    };
+        };
+
+        if(chartLineRef.current){
+            chartLineRef.current.update();
+        }
 
     }, [frequency]);
+
+    const listenValue = useRef<{x: number, y:number}>({x: 0, y: 0});
+
+    useEffect(() => {
+        const listener = (x: number, y: number) => {
+            if(!listenValue.current) return;
+            listenValue.current = {x, y};
+
+            const clampedValue = Math.max(0, Math.min(listenValue.current.x, 640));
+            
+            const mapedValue = mapValues(clampedValue, 0, 640, minFreq, maxFreq);
+            
+            setFreq(mapedValue);
+        }
+
+        // const unsubscribe = controlBus.subscribe(listener);
+
+        // return () => unsubscribe();
+    }, [listenValue])
 
     const getChartLabels = (resolution: number) => {
         const labels = Array.from({length: resolution}, (_, index) => {
@@ -97,7 +123,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
     <div>
         {chartDataRef.current && 
         <div className="w-sm">
-            <Line data={chartDataRef.current} options={options} />
+            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
         </div>
         }
 
