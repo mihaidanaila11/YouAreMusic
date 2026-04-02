@@ -11,13 +11,22 @@ interface ControllerProps{
 const SynthController = ( {synthRef, nodes}: ControllerProps) => {
 
     const [gain, setGain] = useState<number>(50);
+    const [pitch, setPitch] = useState<number>(20);
+
     const channelRef = useRef<Tone.Channel | null>(null);
+
+    useEffect(() => {
+        if(!synthRef.current) return;
+        const midiPitch = Tone.Frequency(pitch).toMidi();
+        const midiFrequency = Tone.Frequency(midiPitch, "midi").toFrequency();
+        synthRef.current.frequency.rampTo(midiFrequency, 0.05);
+    }, [pitch])
 
     const playNote = async () => {
         if(!synthRef.current) return;
 
         await Tone.start();
-        synthRef.current.triggerAttack("C4");
+        synthRef.current.triggerAttack(pitch);
     }
 
     const stopNote = () => {
@@ -33,6 +42,7 @@ const SynthController = ( {synthRef, nodes}: ControllerProps) => {
         if(!synthRef.current){
 
             synthRef.current = new Tone.Synth();
+            synthRef.current.oscillator.type = "sawtooth";
         }
 
         synthRef.current.disconnect();
@@ -79,6 +89,13 @@ const SynthController = ( {synthRef, nodes}: ControllerProps) => {
             <Knob
                 label="Gain"
                 setValue={setGain}
+            />
+
+            <Knob 
+                label = "Pitch"
+                setValue={setPitch}
+                minValue={20}
+                maxValue={1000}
             />
         </div>
     )

@@ -194,7 +194,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
                 </div>
 
                 <div>
-                    {showBindMenu && <MapControll mapKnobValue={mapKnobValue}/>}
+                    <MapControll mapKnobValue={mapKnobValue} showMenu={showBindMenu} />
                 </div>
             </div>
 
