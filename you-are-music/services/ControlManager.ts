@@ -7,16 +7,9 @@ export type Point = {
 export class ControlManager{
     private subscribers = new Set<Subscriber>();
 
-    publish(thumbPoint: Point, selectedPoint: Point, wristPoint: Point, middleBasePoint: Point){
-        const wristToMiddleBaseDistance = Math.sqrt(
-            Math.pow(middleBasePoint.x - wristPoint.x, 2) + Math.pow(middleBasePoint.y - wristPoint.y, 2)
-        );
-
-        const thumbToSelectedDistance = Math.sqrt(
-            Math.pow(selectedPoint.x - thumbPoint.x, 2) + Math.pow(selectedPoint.y - thumbPoint.y, 2)
-        ) / wristToMiddleBaseDistance;
+    publish(fingerDistance: number){
         this.subscribers.forEach(listener => {
-            listener(thumbPoint, selectedPoint);
+            listener(fingerDistance);
         });
     };
 

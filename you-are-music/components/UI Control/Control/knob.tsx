@@ -143,6 +143,11 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         { label: "Bind to...", action: () => setShowBindMenu(prev => !prev) }
     ]
 
+    const mapKnobValue = (value: number) => {
+        const mappedValue = mapValues(value, 0, 1, minValue, maxValue);
+        setCurrent(mappedValue);
+    }
+
     // ------------
 
     return (
@@ -187,7 +192,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
                 </div>
 
                 <div>
-                    {showBindMenu && <MapControll setKnobValue={setCurrent}/>}
+                    {showBindMenu && <MapControll mapKnobValue={mapKnobValue}/>}
                 </div>
             </div>
 

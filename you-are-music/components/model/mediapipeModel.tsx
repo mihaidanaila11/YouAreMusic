@@ -268,37 +268,17 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             return;
         }
 
-        const normalizedIndexDistance = minMaxNormalize(indexFingerDistance, indexFingerLimits.current.min, indexFingerLimits.current.max);
-        console.log("Normalized index finger distance: ", normalizedIndexDistance);
+        const normalizedDistances = [
+            minMaxNormalize(indexFingerDistance, indexFingerLimits.current.min, indexFingerLimits.current.max),
+            minMaxNormalize(middleFingerDistance, middleFingerLimits.current.min, middleFingerLimits.current.max),
+            minMaxNormalize(ringFingerDistance, ringFingerLimits.current.min, ringFingerLimits.current.max),
+            minMaxNormalize(pinkyFingerDistance, pinkyFingerLimits.current.min, pinkyFingerLimits.current.max),
+        ].map(value => Math.max(0, Math.min(value, 1)));
 
-        indexFingerBus.publish(
-            thumbPoint,
-            { x: preductions[0].features[8].x, y: preductions[0].features[8].y },
-            wristPoint,
-            middleBasePoint
-        );
-
-        middleFingerBus.publish(
-            thumbPoint,
-            { x: preductions[0].features[12].x, y: preductions[0].features[12].y },
-            wristPoint,
-            middleBasePoint
-
-        );
-
-        ringFingerBus.publish(
-            thumbPoint,
-            { x: preductions[0].features[16].x, y: preductions[0].features[16].y },
-            wristPoint,
-            middleBasePoint
-        );
-
-        pinkyFingerBus.publish(
-            thumbPoint,
-            { x: preductions[0].features[20].x, y: preductions[0].features[20].y },
-            wristPoint,
-            middleBasePoint
-        );
+        indexFingerBus.publish(normalizedDistances[0]);
+        middleFingerBus.publish(normalizedDistances[1]);
+        ringFingerBus.publish(normalizedDistances[2]);
+        pinkyFingerBus.publish(normalizedDistances[3]);
 
     }
 

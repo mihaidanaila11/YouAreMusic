@@ -4,9 +4,9 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { indexFingerBus, middleFingerBus, pinkyFingerBus, Point, ringFingerBus } from "@/services/ControlManager";
 
 interface MapControllProps{
-    setKnobValue: Dispatch<SetStateAction<number>>;
+    mapKnobValue: (value: number) => void;
 }
-const MapControll = ({ setKnobValue }: MapControllProps) => {
+const MapControll = ({ mapKnobValue }: MapControllProps) => {
 
     const [availableKeypoints, setAvailableKeypoints] = useState({
         indexFinger: {name:"Index Finger", controlManager: indexFingerBus},
@@ -16,7 +16,7 @@ const MapControll = ({ setKnobValue }: MapControllProps) => {
     });
 
     const subscribeFunction = (distance: number) => {
-        // console.log("Distance between thumb and selected point: ", distance);
+        mapKnobValue(distance);
     }
 
     type KeypointKey = keyof typeof availableKeypoints;
