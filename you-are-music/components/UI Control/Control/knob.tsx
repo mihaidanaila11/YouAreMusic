@@ -37,6 +37,8 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     const [showBindMenu, setShowBindMenu] = useState(false);
 
     const handleMouseDown = (event: MouseEvent) => {
+        if(event.button !== 0) return; 
+
         setDragged(true);
         startYRef.current = event.clientY;
     }
