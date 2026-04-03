@@ -13,9 +13,11 @@ interface knobProps {
     label?: string,
     defaultValue?: number,
     mode?: KnobMode,
+    step?: number,
+    sensitivity?: number,
 }
 
-const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear" }: knobProps) => {
+const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100}: knobProps) => {
 
     useEffect(() => {
         if (defaultValue) {
@@ -47,12 +49,12 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         if (!isDragged) return;
 
         const handleMouseMove = (event: globalThis.MouseEvent) => {
-            const sensitivity = maxValue / 100;
 
             const currentYPos = event.clientY;
             const delta = startYRef.current - currentYPos;
+            const steps = Math.round(delta / sensitivity);
 
-            let newValue = currentValue + delta * sensitivity;
+            let newValue = currentValue + steps * step;
 
 
 

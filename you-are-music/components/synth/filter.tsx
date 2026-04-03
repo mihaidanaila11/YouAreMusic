@@ -120,20 +120,23 @@ const FilterController = ( {filterRef}: FilterProps) => {
     } as ChartOptions<"line">;
 
     return(
-    <div>
-        {chartDataRef.current && 
-        <div className="w-sm">
-            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
-        </div>
-        }
-
+    <div className="flex">
         <Knob 
         setValue={setFreq}
         label="Frequency"
         minValue={20}
         maxValue={20000}
         mode="exponential"
+        sensitivity={0.4}
         />
+
+        {chartDataRef.current && 
+        <div className="w-sm">
+            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
+        </div>
+        }
+
+        
     </div>
     )
 }
