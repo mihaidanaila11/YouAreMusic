@@ -120,8 +120,6 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
             channelRef.current.connect(validNodes[0]);
 
             for (let i = 0; i < validNodes.length - 1; i++) {
-
-                console.log("connecting", validNodes[i], "to", validNodes[i + 1]);
                 validNodes[i].connect(validNodes[i + 1]);
             }
 
@@ -132,7 +130,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         }
 
         channelRef.current.volume.value = -12;
-    }, [nodes, synthRef]);
+    }, [nodes]);
 
     useEffect(() => {
         if (!channelRef.current) return;
