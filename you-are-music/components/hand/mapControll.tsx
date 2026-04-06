@@ -1,7 +1,7 @@
 'use client'
 
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { indexFingerBus, middleFingerBus, pinkyFingerBus, Point, ringFingerBus } from "@/services/ControlManager";
+import { indexFingerBus, leftHandYBus, middleFingerBus, pinkyFingerBus, Point, rightHandYBus, ringFingerBus } from "@/services/ControlManager";
 
 interface MapControllProps {
     mapKnobValue: (value: number) => void;
@@ -14,6 +14,8 @@ const MapControll = ({ mapKnobValue, showMenu }: MapControllProps) => {
         middleFinger: { name: "Middle Finger", controlManager: middleFingerBus },
         ringFinger: { name: "Ring Finger", controlManager: ringFingerBus },
         pinkyFinger: { name: "Pinky Finger", controlManager: pinkyFingerBus },
+        leftHandY: { name: "Left Hand Y", controlManager: leftHandYBus },
+        rightHandY: { name: "Right Hand Y", controlManager: rightHandYBus },
     });
 
     const subscribeFunction = (distance: number) => {

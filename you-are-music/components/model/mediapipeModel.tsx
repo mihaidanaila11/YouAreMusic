@@ -1,4 +1,4 @@
-import { indexFingerBus, middleFingerBus, pinkyFingerBus, ringFingerBus } from '@/services/ControlManager';
+import { indexFingerBus, leftHandYBus, middleFingerBus, pinkyFingerBus, rightHandYBus, ringFingerBus } from '@/services/ControlManager';
 import { minMaxNormalize, pointsDistance } from '@/utils/Math';
 import { FilesetResolver, HandLandmarker, Landmark } from '@mediapipe/tasks-vision';
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
@@ -133,7 +133,15 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             const middleBasePointX = prediction.features[9].x;
             if(middleBasePointX < videoSize.width / 2){
                 prediction.hand = "Right";
-            };
+                rightHandYBus.publish(
+                    minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
+                );
+            }
+            else{
+                leftHandYBus.publish(
+                    minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
+                );
+            }
         });
 
         // controlBus.publish(preductions[0].features[0].x, preductions[0].features[0].y);
