@@ -90,11 +90,8 @@ const Adsr = ({ synthRef }: AdsrProps) => {
         <div>
             <h2>Controlls</h2>
 
-            <div className="flex">
-
-
-
-                <div className="flex">
+            <div className="flex flex-col">
+                <div className="flex gap-1">
                     <Knob
                         minValue={0}
                         maxValue={10}
@@ -120,7 +117,7 @@ const Adsr = ({ synthRef }: AdsrProps) => {
                         label="Release" />
                 </div>
 
-                <div className="w-xl h-fit">
+                <div className="w-xs h-fit">
                     <Line options={options} data={chartData} />
                 </div>
             </div>

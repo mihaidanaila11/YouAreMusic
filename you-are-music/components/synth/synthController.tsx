@@ -145,7 +145,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
     }, [gain])
 
     return (
-        <div className="flex">
+        <div className="flex gap-1">
             <button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
             <Knob

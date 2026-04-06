@@ -156,10 +156,10 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
     return (
         <div className="relative w-fit">
-            <div onContextMenu={rightClickHandler} className="w-fit">
-                <span>{label}</span>
+            <div onContextMenu={rightClickHandler} className="w-fit flex flex-col items-center select-none">
+                <span className="text-sm">{label}</span>
 
-                <div onMouseDown={handleMouseDown} className="w-15 aspect-square select-none relative overflow-show">
+                <div onMouseDown={handleMouseDown} className="w-10 aspect-square select-none relative overflow-show">
                     <svg width={"100%"} height={"100%"} className="absolute z-10 rotate-135">
                         <circle r={"45%"} stroke="orange" strokeWidth={3}
                             fill="none"
@@ -168,7 +168,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
                     </svg>
 
                     <svg width={"100%"} height={"100%"} className="absolute z-20 rotate-135">
-                        <circle r={"45%"} stroke="red" strokeWidth={3}
+                        <circle r={"45%"} stroke="red" strokeWidth={1}
                             fill="none"
                             cx={"50%"} cy={"50%"}
                             ref={valueCircleRef} />
@@ -183,7 +183,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
                         <div className="bg-red-500 w-1/12 h-1/3 rounded-full absolute top-0 left-1/2 -translate-x-1/2" />
                     </div>
                 </div>
-                {currentValue.toFixed(2)}
+                <span className="text-xs">{currentValue.toFixed(2)}</span>
 
             </div>
 
