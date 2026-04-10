@@ -173,10 +173,6 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
     const playNote = async () => {
         if (!synthRef.current) return;
-
-        Tone.start().then(() => {
-            setCtx(Tone.getContext());
-        });
         synthRef.current.triggerAttack(pitch);
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(pitch);
