@@ -137,7 +137,6 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
     const rightClickHandler = (e: MouseEvent) => {
         e.preventDefault();
-        console.log("right click");
         setShowMenu(prev => !prev);
         return false;
     }

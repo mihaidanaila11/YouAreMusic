@@ -33,7 +33,6 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
     useEffect(() => {
         const getBuffer = async () => {
             if (!synthRef.current) return null;
-            console.log(Tone.getContext().state);
             const oscFreq = 100;
 
             const buffer = await Tone.Offline(async () => {
@@ -246,7 +245,6 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
     useEffect(() => {
         if (!synthRef.current) return;
         synthRef.current.oscillator.type = oscType;
-        // console.log(oscType);
     }, [oscType]);
 
     return (

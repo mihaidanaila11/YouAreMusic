@@ -6,6 +6,7 @@ import Synth from '@/components/synth/synth';
 import Webcam from '@/components/webcam/webcam';
 import { Landmark } from '@mediapipe/tasks-vision';
 import { useEffect, useRef, useState } from 'react';
+import * as Tone from "tone";
 
 
 /**
@@ -78,6 +79,9 @@ export default function Test() {
 
     const [predictions, setPredictions] = useState<ModelPrediction[] | null>(null);
 
+    const [toneContext, setToneContext] = useState<Tone.BaseContext | null>(null);
+
+
     useEffect(() => {
         if (!overlayCanvas.current) {
             return;
@@ -102,28 +106,52 @@ export default function Test() {
 
     }, [predictions])
 
+    const handleStartAudio = async () => {
+        ("Starting audio");
+        Tone.start().then(() => {
+            console.log("Audio started");
+            setToneContext(Tone.getContext());
+        });
+    }
+
     return (
-        <div className='mx-2'>
-            <HandTracker
-                videoStream={videoStream}
-                setPrediction={setPredictions}
-            />
-            {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
+        <>
+            {
+                (!toneContext || toneContext.state === "suspended") && (
+                    <div>
+                        <p className='text-center'>Click to start the music</p>
+                        <button onClick={handleStartAudio} className='cursor-pointer'>Start Audio</button>
+                    </div>
+                )
+            }
+
+            {toneContext && toneContext.state === "running" && (
 
 
-            <div className='relative w-30'>
-                <canvas width={640} height={480}
-                    ref={overlayCanvas} className='absolute top-0 left-0 w-full'></canvas>
-                <Webcam videoRef={videoStream} />
-            </div>
+                <div className='mx-2'>
+                    <HandTracker
+                        videoStream={videoStream}
+                        setPrediction={setPredictions}
+                    />
+                    {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
 
 
-            <div className="grid grid-cols-2 gap-10 m-6">
-                <Synth />
-                <Synth />
+                    <div className='relative w-30'>
+                        <canvas width={640} height={480}
+                            ref={overlayCanvas} className='absolute top-0 left-0 w-full'></canvas>
+                        <Webcam videoRef={videoStream} />
+                    </div>
 
-            </div>
 
-        </div>
+                    <div className="grid grid-cols-2 gap-10 m-6">
+                        <Synth />
+                        <Synth />
+
+                    </div>
+
+                </div>
+
+            )}
+        </>
     )
 }
