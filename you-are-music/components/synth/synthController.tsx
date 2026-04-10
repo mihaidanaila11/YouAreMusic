@@ -1,23 +1,113 @@
-import { RefObject, useEffect, useState, useRef } from "react";
+import { RefObject, useEffect, useState, useRef, useMemo } from "react";
 import * as Tone from "tone";
 import Knob from "../UI Control/Control/knob";
 import { mapValues } from "@/utils/Math";
+import { ChartData, ChartOptions } from "chart.js";
+import { Line } from "react-chartjs-2";
+import { OmniOscillatorType } from "tone/build/esm/source/oscillator/OscillatorInterface";
+import OptionPick from "../UI Control/Control/optionPick";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
     nodes?: RefObject<Tone.ToneAudioNode | null>[]
 }
 
+const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
+
 const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
     const [gain, setGain] = useState<number>(50);
     const [pitch, setPitch] = useState<number>(20);
     const [detune, setDetune] = useState<number>(0);
+    const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
     const maxDetune = 100;
 
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
 
+    const [ctx, setCtx] = useState<Tone.BaseContext | null>(null);
+
+    // Basic Waveform Visualization
+    const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
+
+    useEffect(() => {
+        const getBuffer = async () => {
+            if (!synthRef.current) return null;
+            console.log(Tone.getContext().state);
+            const oscFreq = 100;
+
+            const buffer = await Tone.Offline(async () => {
+                if (!synthRef.current) return;
+
+                const synth = new Tone.Synth();
+                synth.oscillator.type = oscType;
+                synth.toDestination();
+                synth.triggerAttackRelease(oscFreq, 1 / oscFreq);
+
+            }, 1 / oscFreq);
+
+            return buffer;
+        };
+
+        getBuffer().then((buffer) => {
+            if (!buffer) return;
+            const channelData = buffer.getChannelData(0);
+            setWaveform(new Float32Array(channelData));
+        });
+    }, [oscType]);
+
+
+
+    const waveformGraphData = useMemo<ChartData<"line", number[], number>>(() => {
+        return {
+            labels: Array.from({ length: waveform.length }, (_, i) => i),
+            datasets: [{
+                data: Array.from(waveform)
+            }]
+        }
+    }, [waveform]);
+
+
+    const options = {
+        responsive: true,
+        elements: {
+            point: {
+                radius: 0,
+            }
+        },
+        plugins: {
+
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: 'Chart.js Line Chart',
+            },
+        },
+        scales: {
+            x: {
+                type: 'linear' as const,
+                grid: {
+                    display: false,
+                },
+                ticks: {
+                    display: false,
+                }
+            },
+
+            y: {
+                grid: {
+                    display: false,
+                },
+                ticks: {
+                    display: false,
+                }
+            }
+        }
+    } as ChartOptions<"line">;
+
+    // --------------------
 
     const channelRef = useRef<Tone.Channel | null>(null);
 
@@ -40,8 +130,8 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
         const currentUnison = unisonVoices.current.length;
 
-        if(unison === 0){
-            unisonVoices.current.forEach( _ => {
+        if (unison === 0) {
+            unisonVoices.current.forEach(_ => {
                 const synthToRemove = unisonVoices.current.pop();
                 synthToRemove?.dispose();
             });
@@ -71,14 +161,16 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
             const detuneValue = -detune + index * detuneStep;
             synth.detune.rampTo(detuneValue, 0.05);
         });
-        
+
 
     }, [unison])
 
     const playNote = async () => {
         if (!synthRef.current) return;
 
-        await Tone.start();
+        Tone.start().then(() => {
+            setCtx(Tone.getContext());
+        });
         synthRef.current.triggerAttack(pitch);
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(pitch);
@@ -101,7 +193,8 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         if (!synthRef.current) {
 
             synthRef.current = new Tone.Synth();
-            synthRef.current.oscillator.type = "sawtooth";
+            synthRef.current.oscillator.type = oscType;
+            const t = "sawtooth" as Tone.OmniOscSourceType;
         }
 
         synthRef.current.disconnect();
@@ -126,7 +219,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
             validNodes[validNodes.length - 1].toDestination();
         }
         else {
-            
+
         }
 
         channelRef.current.volume.value = -12;
@@ -138,45 +231,63 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         const maxVolDb = 0;
 
         const mappedVolume = mapValues(Math.log10(gain / 10), 0, 1, minVolDb, maxVolDb);
-        console.log(mappedVolume);
-
         channelRef.current.volume.rampTo(mappedVolume, 0.05);
 
     }, [gain])
 
+    // Handle Oscillator Type Change
+    useEffect(() => {
+        if (!synthRef.current) return;
+        synthRef.current.oscillator.type = oscType;
+        // console.log(oscType);
+    }, [oscType]);
+
     return (
-        <div className="flex gap-1">
-            <button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
-            <Knob
-                label="Gain"
-                setValue={setGain}
-            />
+        <div className="select-none">
+            <div className="w-xs">
+                <OptionPick setOption={setOscType} options={OscTypes}/>
+                <Line data={waveformGraphData} options={options} />
+            </div>
 
-            <Knob
-                label="Pitch"
-                setValue={setPitch}
-                minValue={20}
-                maxValue={1000}
-            />
 
-            <Knob
-                label="Detune"
-                setValue={setDetune}
-                minValue={0}
-                maxValue={100}
-                defaultValue={0}
-            />
 
-            <Knob
-                label="Unison"
-                setValue={setUnison}
-                minValue={0}
-                maxValue={8}
-                step={1}
-                sensitivity={8}
-                defaultValue={0}
-            />
+
+            <div className="flex gap-1">
+
+
+                < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
+
+                <Knob
+                    label="Gain"
+                    setValue={setGain}
+                />
+
+                <Knob
+                    label="Pitch"
+                    setValue={setPitch}
+                    minValue={20}
+                    maxValue={1000}
+                />
+
+                <Knob
+                    label="Detune"
+                    setValue={setDetune}
+                    minValue={0}
+                    maxValue={100}
+                    defaultValue={0}
+                />
+
+                <Knob
+                    label="Unison"
+                    setValue={setUnison}
+                    minValue={0}
+                    maxValue={8}
+                    step={1}
+                    sensitivity={8}
+                    defaultValue={0}
+                />
+            </div>
         </div>
     )
 };
