@@ -1,12 +1,8 @@
 'use client';
 
-import HandTracker from '@/components/model/mediapipeModel';
-import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
 import ModelController from '@/components/model/ModelController';
 import Synth from '@/components/synth/synth';
-import Webcam from '@/components/webcam/webcam';
-import { Landmark } from '@mediapipe/tasks-vision';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import * as Tone from "tone";
 
 

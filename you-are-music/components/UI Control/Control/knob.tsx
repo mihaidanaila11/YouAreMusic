@@ -186,17 +186,17 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
 
 
-                {showMenu && <div className="absolute right-0 z-100 w-full">
-                    <div className="">
+                <div className="absolute right-0 z-100 w-full">
+                    { showMenu && <div className="">
 
                         <KnobMenu options={knobMenuOptions} />
 
-                    </div>
+                    </div>}
 
                     <div>
                         <MapControll mapKnobValue={mapKnobValue} showMenu={showBindMenu} />
                     </div>
-                </div>}
+                </div>
             </div>
 
 
