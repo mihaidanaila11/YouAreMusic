@@ -44,7 +44,7 @@ const ReverbController = ({ reverbRef }: ReverbControllerProps) => {
     }, [decay, preDelay])
 
     return (
-        <div className="flex">
+        <div className="flex border-2 border-gray-300">
             <Knob
                 minValue={0}
                 maxValue={1}

@@ -88,8 +88,8 @@ const Adsr = ({ synthRef }: AdsrProps) => {
 
 
     return (
-        <div>
-            <h2>Controlls</h2>
+        <div className="border-2 border-gray-300">
+            <h2>ADSR</h2>
 
             <div className="flex flex-col">
 

@@ -251,10 +251,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
     return (
 
-        <div className="select-none">
+        <div className="select-none border-2 border-gray-300">
             <div className="">
                 <OptionPick setOption={setOscType} options={OscTypes} />
-                <div>
+                <div className="h-20">
                     <Line data={waveformGraphData} options={options} />
                 </div>
 

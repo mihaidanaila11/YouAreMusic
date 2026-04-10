@@ -116,8 +116,8 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
         const preductions: ModelPrediction[] = prediction.landmarks.map( landmarkList => {
             const landmarks: Landmark[] = landmarkList.map(landmark => {
                 return{
-                    x: landmark.x * videoSize.width,
-                    y: landmark.y * videoSize.height,
+                    x: landmark.x,
+                    y: landmark.y,
                     z: landmark.z,
                     visibility: landmark.visibility,
                 }
@@ -283,7 +283,7 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
     }
 
     return(
-        <div>
+        <div className='flex'>
             <p>
                 {loading ? "Model is loading" : (
                     error ? error : ("Model loaded.")

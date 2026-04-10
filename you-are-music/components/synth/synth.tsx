@@ -17,8 +17,11 @@ const Synth = () => {
             <SynthController synthRef={synthRef} nodes={[filterRef, reverbRef]}/>
             
             
-            <div className="grid grid-rows-1 grid-cols-2">
-                <Adsr synthRef={synthRef}/>
+            <div className="grid grid-rows-1 grid-cols-4">
+                <div className="col-span-3">
+                    <Adsr synthRef={synthRef} />
+                </div>
+                
                 <FilterController filterRef={filterRef}/>
             </div>
             <ReverbController reverbRef={reverbRef}/>            

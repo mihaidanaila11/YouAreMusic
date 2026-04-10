@@ -15,10 +15,10 @@ import { useEffect, useRef, useState } from 'react';
   * @returns - None
   */
 
-function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasElement){
+function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasElement) {
     const canvasContext = canvas.getContext("2d");
 
-    if(!canvasContext){
+    if (!canvasContext) {
         return;
     }
 
@@ -32,11 +32,11 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     )
 
     canvasContext.stroke();
- }
+}
 
- function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement, color: string){
+function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement, color: string) {
     const canvasContext = canvas.getContext("2d");
-    if(!canvasContext) return;
+    if (!canvasContext) return;
 
     canvasContext.fillStyle = color;
     let [meanX, meanY] = [0, 0];
@@ -44,9 +44,9 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     features.forEach((landmark, index) => {
         meanX += landmark.x;
         meanY += landmark.y;
-        if(![4,8,12,16,20, 0, 9].includes(index)) return;
+        if (![4, 8, 12, 16, 20, 0, 9].includes(index)) return;
         canvasContext.beginPath();
-        canvasContext.arc(landmark.x , landmark.y, 5, 0, 2*Math.PI);
+        canvasContext.arc(landmark.x * canvas.width, landmark.y * canvas.height, canvas.width * 0.01, 0, 2 * Math.PI);
         canvasContext.fill();
     });
 
@@ -56,19 +56,19 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
     canvasContext.fillStyle = "red";
 
     canvasContext.beginPath();
-        canvasContext.arc(meanX, meanY, 5, 0, 2*Math.PI);
-        canvasContext.fill();
- }
+    canvasContext.arc(meanX * canvas.width, meanY * canvas.height, canvas.width * 0.02, 0, 2 * Math.PI);
+    canvasContext.fill();
+}
 
-function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement, color: string){
+function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement, color: string) {
     const canvasContext = canvas.getContext("2d");
-    if(!canvasContext) return;
-    
+    if (!canvasContext) return;
+
     if (prediction.predictionBox)
         drawPredictionBox(prediction.predictionBox, canvas);
-    
-    drawPredictionKeypoints(prediction.features,canvas, color);
-    
+
+    drawPredictionKeypoints(prediction.features, canvas, color);
+
 }
 
 export default function Test() {
@@ -79,49 +79,51 @@ export default function Test() {
     const [predictions, setPredictions] = useState<ModelPrediction[] | null>(null);
 
     useEffect(() => {
-        if(!overlayCanvas.current){
+        if (!overlayCanvas.current) {
             return;
         }
 
         const canvasContext = overlayCanvas.current.getContext("2d");
 
-        if(!predictions){
-            
-            canvasContext?.clearRect(0,0,overlayCanvas.current.width, 
+        if (!predictions) {
+
+            canvasContext?.clearRect(0, 0, overlayCanvas.current.width,
                 overlayCanvas.current.height);
             return;
         }
-        canvasContext?.clearRect(0,0,overlayCanvas.current.width, overlayCanvas.current.height);
-        predictions.forEach( (prediction, index) => {
-            if(!overlayCanvas.current){
-            return;
+        canvasContext?.clearRect(0, 0, overlayCanvas.current.width, overlayCanvas.current.height);
+        predictions.forEach((prediction, index) => {
+            if (!overlayCanvas.current) {
+                return;
             }
-            
+
             drawPrediction(prediction, overlayCanvas.current, index === 0 ? "green" : "yellow");
         })
-    
+
     }, [predictions])
-    
-    return(
-        <>
-        <HandTracker 
-        videoStream={videoStream}
-        setPrediction={setPredictions}
-        />
-        {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
 
-        <div className='relative w-30'>
-            <canvas 
-            ref = {overlayCanvas}className='absolute top-0 left-0 '></canvas>
-            <Webcam videoRef={videoStream}/>
+    return (
+        <div className='mx-2'>
+            <HandTracker
+                videoStream={videoStream}
+                setPrediction={setPredictions}
+            />
+            {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
+
+
+            <div className='relative w-30'>
+                <canvas width={640} height={480}
+                    ref={overlayCanvas} className='absolute top-0 left-0 w-full'></canvas>
+                <Webcam videoRef={videoStream} />
+            </div>
+
+
+            <div className="grid grid-cols-2 gap-10 m-6">
+                <Synth />
+                <Synth />
+
+            </div>
+
         </div>
-
-        <div className="grid grid-cols-2">
-            <Synth />
-            <Synth />
-            
-        </div>
-
-        </>
     )
 }
