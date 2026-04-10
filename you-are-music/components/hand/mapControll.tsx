@@ -25,7 +25,6 @@ const MapControll = ({ mapKnobValue, showMenu }: MapControllProps) => {
     const [selectedKeypoint, setSelectedKeypoint] = useState<KeypointKey | "-">("-");
 
     useEffect(() => {
-        console.log(selectedKeypoint);
         if(selectedKeypoint === "-") return;
         const unsubscribe = availableKeypoints[selectedKeypoint].controlManager.subscribe(subscribeFunction);
 

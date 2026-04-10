@@ -2,122 +2,52 @@
 
 import HandTracker from '@/components/model/mediapipeModel';
 import { ModelPrediction, PredictionBox } from '@/components/model/mediapipeModel';
+import ModelController from '@/components/model/ModelController';
 import Synth from '@/components/synth/synth';
 import Webcam from '@/components/webcam/webcam';
 import { Landmark } from '@mediapipe/tasks-vision';
 import { useEffect, useRef, useState } from 'react';
+import * as Tone from "tone";
 
-
-/**
-  * 
-  * @param {PredictionBox} predictionBox
-  * @param {HTMLCanvasElement} canvas 
-  * @returns - None
-  */
-
-function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasElement){
-    const canvasContext = canvas.getContext("2d");
-
-    if(!canvasContext){
-        return;
-    }
-
-    canvasContext.strokeStyle = "red";
-    canvasContext.beginPath()
-    canvasContext.rect(
-        predictionBox.x - predictionBox.width / 2,
-        predictionBox.y - predictionBox.height / 2,
-        predictionBox.width,
-        predictionBox.height,
-    )
-
-    canvasContext.stroke();
- }
-
- function drawPredictionKeypoints(features: Landmark[], canvas: HTMLCanvasElement, color: string){
-    const canvasContext = canvas.getContext("2d");
-    if(!canvasContext) return;
-
-    canvasContext.fillStyle = color;
-    let [meanX, meanY] = [0, 0];
-
-    features.forEach((landmark, index) => {
-        meanX += landmark.x;
-        meanY += landmark.y;
-        if(![4,8,12,16,20, 0, 9].includes(index)) return;
-        canvasContext.beginPath();
-        canvasContext.arc(landmark.x, landmark.y, 5, 0, 2*Math.PI);
-        canvasContext.fill();
-    });
-
-    meanX /= features.length;
-    meanY /= features.length;
-
-    canvasContext.fillStyle = "red";
-
-    canvasContext.beginPath();
-        canvasContext.arc(meanX, meanY, 5, 0, 2*Math.PI);
-        canvasContext.fill();
- }
-
-function drawPrediction(prediction: ModelPrediction, canvas: HTMLCanvasElement, color: string){
-    const canvasContext = canvas.getContext("2d");
-    if(!canvasContext) return;
-    
-    if (prediction.predictionBox)
-        drawPredictionBox(prediction.predictionBox, canvas);
-    
-    drawPredictionKeypoints(prediction.features,canvas, color);
-    
-}
 
 export default function Test() {
-    const webcamCanvas = useRef<HTMLCanvasElement | null>(null);
-    const overlayCanvas = useRef<HTMLCanvasElement | null>(null);
-    const videoStream = useRef<HTMLVideoElement | null>(null);
+    const [toneContext, setToneContext] = useState<Tone.BaseContext | null>(null);
 
-    const [predictions, setPredictions] = useState<ModelPrediction[] | null>(null);
+    const handleStartAudio = async () => {
+        ("Starting audio");
+        Tone.start().then(() => {
+            console.log("Audio started");
+            setToneContext(Tone.getContext());
+        });
+    }
 
-    useEffect(() => {
-        if(!overlayCanvas.current){
-            return;
-        }
-
-        const canvasContext = overlayCanvas.current.getContext("2d");
-
-        if(!predictions){
-            
-            canvasContext?.clearRect(0,0,overlayCanvas.current.width, 
-                overlayCanvas.current.height);
-            return;
-        }
-        canvasContext?.clearRect(0,0,overlayCanvas.current.width, overlayCanvas.current.height);
-        predictions.forEach( (prediction, index) => {
-            if(!overlayCanvas.current){
-            return;
-            }
-            
-            drawPrediction(prediction, overlayCanvas.current, index === 0 ? "green" : "yellow");
-        })
-    
-    }, [predictions])
-    
-    return(
+    return (
         <>
-        <HandTracker 
-        videoStream={videoStream}
-        setPrediction={setPredictions}
-        />
-        {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
+            {
+                (!toneContext || toneContext.state === "suspended") && (
+                    <div>
+                        <p className='text-center'>Click to start the music</p>
+                        <button onClick={handleStartAudio} className='cursor-pointer'>Start Audio</button>
+                    </div>
+                )
+            }
 
-        <div className='relative'>
-            <canvas 
-            ref = {overlayCanvas}
-            width={640} height={640} className='absolute top-0 left-0 '></canvas>
-            <Webcam videoRef={videoStream}/>
-        </div>
+            {toneContext && toneContext.state === "running" && (
 
-        <Synth />
+
+                <div className='mx-2'>
+                    
+                    <ModelController />
+
+                    <div className="grid grid-cols-2 gap-10 m-6">
+                        <Synth />
+                        <Synth />
+
+                    </div>
+
+                </div>
+
+            )}
         </>
     )
 }

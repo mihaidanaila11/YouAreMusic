@@ -13,11 +13,18 @@ const Synth = () => {
     const reverbRef = useRef<Tone.Reverb | null>(null);
 
     return(
-        <div>
-            <FilterController filterRef={filterRef}/>
-            <ReverbController reverbRef={reverbRef}/>
+        <div className="m-w-full">
             <SynthController synthRef={synthRef} nodes={[filterRef, reverbRef]}/>
-            <Adsr synthRef={synthRef}/>
+            
+            
+            <div className="grid grid-rows-1 grid-cols-4">
+                <div className="col-span-3">
+                    <Adsr synthRef={synthRef} />
+                </div>
+                
+                <FilterController filterRef={filterRef}/>
+            </div>
+            <ReverbController reverbRef={reverbRef}/>            
 
         </div>
     )
