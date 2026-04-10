@@ -69,6 +69,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
 
     const options = {
+        maintainAspectRatio: false,
         responsive: true,
         elements: {
             point: {
@@ -87,6 +88,9 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         },
         scales: {
             x: {
+                border: {
+                    display: false,
+                },
                 type: 'linear' as const,
                 grid: {
                     display: false,
@@ -97,6 +101,9 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
             },
 
             y: {
+                border: {
+                    display: false,
+                },
                 grid: {
                     display: false,
                 },
@@ -245,48 +252,51 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
     return (
 
         <div className="select-none">
-            <div className="w-xs">
-                <OptionPick setOption={setOscType} options={OscTypes}/>
-                <Line data={waveformGraphData} options={options} />
+            <div className="">
+                <OptionPick setOption={setOscType} options={OscTypes} />
+                <div>
+                    <Line data={waveformGraphData} options={options} />
+                </div>
+
             </div>
 
+            <div className="flex justify-between">
+                <div className="flex items-center gap-3">
+                    < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
+                    <Knob
+                        label="Gain"
+                        setValue={setGain}
+                    />
 
+                    <Knob
+                        label="Pitch"
+                        setValue={setPitch}
+                        minValue={20}
+                        maxValue={1000}
+                    />
+                </div>
 
-            <div className="flex gap-1">
+                <div className="flex items-center gap-3">
+                    <Knob
+                        label="Detune"
+                        setValue={setDetune}
+                        minValue={0}
+                        maxValue={100}
+                        defaultValue={0}
+                    />
 
+                    <Knob
+                        label="Unison"
+                        setValue={setUnison}
+                        minValue={0}
+                        maxValue={8}
+                        step={1}
+                        sensitivity={8}
+                        defaultValue={0}
+                    />
 
-                < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
-
-                <Knob
-                    label="Gain"
-                    setValue={setGain}
-                />
-
-                <Knob
-                    label="Pitch"
-                    setValue={setPitch}
-                    minValue={20}
-                    maxValue={1000}
-                />
-
-                <Knob
-                    label="Detune"
-                    setValue={setDetune}
-                    minValue={0}
-                    maxValue={100}
-                    defaultValue={0}
-                />
-
-                <Knob
-                    label="Unison"
-                    setValue={setUnison}
-                    minValue={0}
-                    maxValue={8}
-                    step={1}
-                    sensitivity={8}
-                    defaultValue={0}
-                />
+                </div>
             </div>
         </div>
     )

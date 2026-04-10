@@ -17,7 +17,7 @@ interface knobProps {
     sensitivity?: number,
 }
 
-const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100}: knobProps) => {
+const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100 }: knobProps) => {
 
     useEffect(() => {
         if (defaultValue) {
@@ -39,7 +39,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     const [showBindMenu, setShowBindMenu] = useState(false);
 
     const handleMouseDown = (event: MouseEvent) => {
-        if(event.button !== 0) return; 
+        if (event.button !== 0) return;
 
         setDragged(true);
         startYRef.current = event.clientY;
@@ -159,7 +159,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
             <div onContextMenu={rightClickHandler} className="w-fit flex flex-col items-center select-none">
                 <span className="text-sm">{label}</span>
 
-                <div onMouseDown={handleMouseDown} className="w-10 aspect-square select-none relative overflow-show">
+                <div onMouseDown={handleMouseDown} className="w-10 aspect-square select-none relative overflow-hidden">
                     <svg width={"100%"} height={"100%"} className="absolute z-10 rotate-135">
                         <circle r={"45%"} stroke="orange" strokeWidth={3}
                             fill="none"
@@ -185,20 +185,21 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
                 </div>
                 <span className="text-xs">{currentValue.toFixed(2)}</span>
 
-            </div>
 
-            <div className="absolute right-0 z-100 w-full">
-                <div className="">
-                    {
-                        showMenu &&
+
+                {showMenu && <div className="absolute right-0 z-100 w-full">
+                    <div className="">
+
                         <KnobMenu options={knobMenuOptions} />
-                    }
-                </div>
 
-                <div>
-                    <MapControll mapKnobValue={mapKnobValue} showMenu={showBindMenu} />
-                </div>
+                    </div>
+
+                    <div>
+                        <MapControll mapKnobValue={mapKnobValue} showMenu={showBindMenu} />
+                    </div>
+                </div>}
             </div>
+
 
 
 

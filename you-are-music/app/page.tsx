@@ -46,7 +46,7 @@ function drawPredictionBox(predictionBox: PredictionBox, canvas: HTMLCanvasEleme
         meanY += landmark.y;
         if(![4,8,12,16,20, 0, 9].includes(index)) return;
         canvasContext.beginPath();
-        canvasContext.arc(landmark.x, landmark.y, 5, 0, 2*Math.PI);
+        canvasContext.arc(landmark.x , landmark.y, 5, 0, 2*Math.PI);
         canvasContext.fill();
     });
 
@@ -110,14 +110,18 @@ export default function Test() {
         />
         {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
 
-        <div className='relative'>
+        <div className='relative w-30'>
             <canvas 
-            ref = {overlayCanvas}
-            width={640} height={640} className='absolute top-0 left-0 '></canvas>
+            ref = {overlayCanvas}className='absolute top-0 left-0 '></canvas>
             <Webcam videoRef={videoStream}/>
         </div>
 
-        <Synth />
+        <div className="grid grid-cols-2">
+            <Synth />
+            <Synth />
+            
+        </div>
+
         </>
     )
 }

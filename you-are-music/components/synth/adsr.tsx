@@ -60,6 +60,7 @@ const Adsr = ({ synthRef }: AdsrProps) => {
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'top' as const,
@@ -91,6 +92,11 @@ const Adsr = ({ synthRef }: AdsrProps) => {
             <h2>Controlls</h2>
 
             <div className="flex flex-col">
+
+                <div className="w-full">
+                    <Line options={options} data={chartData} />
+                </div>
+
                 <div className="flex gap-1">
                     <Knob
                         minValue={0}
@@ -115,10 +121,6 @@ const Adsr = ({ synthRef }: AdsrProps) => {
                         maxValue={10}
                         setValue={setRelease}
                         label="Release" />
-                </div>
-
-                <div className="w-xs h-fit">
-                    <Line options={options} data={chartData} />
                 </div>
             </div>
         </div>

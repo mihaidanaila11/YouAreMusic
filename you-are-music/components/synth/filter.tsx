@@ -87,6 +87,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
     
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         elements:{
             point:{
                 radius: 0,
@@ -97,6 +98,9 @@ const FilterController = ( {filterRef}: FilterProps) => {
         },
         scales:{
             x:{
+                border: {
+                    display: false,
+                },
                 grid: {
                     display: false,
                 },
@@ -109,18 +113,32 @@ const FilterController = ( {filterRef}: FilterProps) => {
             },
 
             y: {
+                border: {
+                    display: false,
+                },
                 min: -60,
                 max: 5,
                 grid:{
                     display: false,
                 },
+
+                ticks: {
+                    display: false,
+                }
             }
         },
         animation: false
     } as ChartOptions<"line">;
 
     return(
-    <div className="flex">
+    <div className="flex flex-col">
+
+        {chartDataRef.current && 
+        <div className="w-full">
+            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
+        </div>
+        }
+
         <Knob 
         setValue={setFreq}
         label="Frequency"
@@ -129,12 +147,6 @@ const FilterController = ( {filterRef}: FilterProps) => {
         mode="exponential"
         sensitivity={0.4}
         />
-
-        {chartDataRef.current && 
-        <div className="w-sm">
-            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
-        </div>
-        }
 
         
     </div>
