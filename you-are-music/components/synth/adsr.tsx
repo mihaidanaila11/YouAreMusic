@@ -5,10 +5,11 @@ import { ChartData, Chart, CategoryScale, LinearScale, PointElement, LineElement
 import * as Tone from "tone"
 
 interface AdsrProps {
-    synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>
+    setParams?: (attack: number, decay: number, sustain: number, release: number) => void,
+    label?: string
 }
 
-const Adsr = ({ synthRef }: AdsrProps) => {
+const Adsr = ({ setParams, label }: AdsrProps) => {
     const [attackTime, setAttack] = useState<number>(0);
     const [decayTime, setDecay] = useState<number>(0);
     const [sustainValue, setSustain] = useState<number>(0);
@@ -35,13 +36,7 @@ const Adsr = ({ synthRef }: AdsrProps) => {
     }, [attackTime, decayTime, sustainValue, releaseTime]);
 
     useEffect(() => {
-        if (!synthRef || !synthRef.current) return;
-        synthRef.current.envelope.set({
-            attack: attackTime,
-            decay: decayTime,
-            sustain: sustainValue,
-            release: releaseTime
-        });
+        setParams?.(attackTime, decayTime, sustainValue, releaseTime);
     }, [graphPoints])
 
     Chart.register(
@@ -89,7 +84,7 @@ const Adsr = ({ synthRef }: AdsrProps) => {
 
     return (
         <div className="border-2 border-gray-300 h-full">
-            <h2>ADSR</h2>
+            <h2>ADSR {label}</h2>
 
             <div className="flex flex-col">
 

@@ -3,6 +3,9 @@ import { mapValues } from "@/utils/Math";
 import KnobMenu from "./knobMenu";
 import MapControll from "@/components/hand/mapControll";
 import { Point } from "@/services/ControlManager";
+import Adsr from "@/components/synth/adsr";
+import AdsrDragManager from "@/services/AdsrDragManager";
+import * as Tone from "tone";
 
 type KnobMode = "linear" | "exponential";
 
@@ -15,9 +18,10 @@ interface knobProps {
     mode?: KnobMode,
     step?: number,
     sensitivity?: number,
+    setEnvelope?: (env: Tone.Scale) => void
 }
 
-const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100 }: knobProps) => {
+const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, setEnvelope }: knobProps) => {
 
     useEffect(() => {
         if (defaultValue) {
@@ -151,10 +155,28 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         setCurrent(mappedValue);
     }
 
+    // Handle envelope drag and drop
+    const scaleRef = useRef(new Tone.Scale( Math.max(minValue, minValue + currentValue), maxValue));
+    const handleEnvDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const draggedEnv = AdsrDragManager.getCurrentDragged();
+        if(!draggedEnv) return;
+
+        draggedEnv.connect(scaleRef.current.set({context: draggedEnv.context}));
+        console.log("dropped", draggedEnv);
+        setEnvelope?.(scaleRef.current);
+    }
+
+    useEffect(() => {
+        scaleRef.current.min = Math.max(minValue, minValue + currentValue);
+        console.log("Updated scale min to", scaleRef.current.min);
+    }, [currentValue])
+    
+
     // ------------
 
     return (
-        <div className="relative w-fit">
+        <div className="relative w-fit" onDrop={handleEnvDrop} onDragOver={(e) => e.preventDefault()}>
             <div onContextMenu={rightClickHandler} className="w-fit flex flex-col items-center select-none">
                 <span className="text-sm">{label}</span>
 
