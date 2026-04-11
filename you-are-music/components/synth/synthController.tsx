@@ -6,6 +6,7 @@ import { ChartData, ChartOptions } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { OmniOscillatorType } from "tone/build/esm/source/oscillator/OscillatorInterface";
 import OptionPick from "../UI Control/Control/optionPick";
+import Increment from "../UI Control/Control/increment";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -20,6 +21,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
     const [pitch, setPitch] = useState<number>(20);
     const [detune, setDetune] = useState<number>(0);
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
+    const [semitone, setSemitone] = useState<number>(0);
     const maxDetune = 100;
 
     const [unison, setUnison] = useState<number>(0);
@@ -126,8 +128,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
     useEffect(() => {
         if (!synthRef.current) return;
-        synthRef.current.detune.rampTo(detune, 0.05);
-    }, [detune]);
+        synthRef.current.detune.rampTo(detune + semitone * 100, 0.05);
+
+        console.log("Detune set to:", detune + semitone * 100);
+    }, [detune, semitone]);
 
 
     // Handle detune
@@ -149,7 +153,8 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
             const synthsNeeded = unison - currentUnison;
 
             for (let i = 0; i < synthsNeeded; i++) {
-                const newSynth = new Tone.Synth(synthRef.current.get() as Tone.SynthOptions).connect(channelRef.current);
+                const newSynth = new Tone.Synth({...(synthRef.current.get() as Tone.SynthOptions),
+                     context: channelRef.current.context}).connect(channelRef.current);
                 unisonVoices.current.push(newSynth);
             }
         }
@@ -196,28 +201,27 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
             synthRef.current = new Tone.Synth();
             synthRef.current.oscillator.type = oscType;
-            const t = "sawtooth" as Tone.OmniOscSourceType;
         }
 
         synthRef.current.disconnect();
-
+        
 
         synthRef.current.connect(channelRef.current);
 
         const validNodes = nodes
             ?.map((node) => node.current)
-            .filter((node) => !!node) || [];
+            .filter((node) => node !== null)
+            .filter((node) => node.context === channelRef.current?.context) || [];
 
         if (validNodes.length > 0 && !!nodes) {
-            const validNodes = nodes
-                .map((node) => node.current)
-                .filter((node) => !!node) || [];
             channelRef.current.connect(validNodes[0]);
 
             for (let i = 0; i < validNodes.length - 1; i++) {
+                validNodes[i].disconnect();
                 validNodes[i].connect(validNodes[i + 1]);
             }
 
+            validNodes[validNodes.length - 1].disconnect();
             validNodes[validNodes.length - 1].toDestination();
         }
         else {
@@ -243,11 +247,19 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         synthRef.current.oscillator.type = oscType;
     }, [oscType]);
 
+    // Handle Semitone Change
+    useEffect(() => {
+        if (!synthRef.current) return;
+
+        
+    }, [semitone])
+
     return (
 
         <div className="select-none border-2 border-gray-300">
             <div className="">
                 <OptionPick setOption={setOscType} options={OscTypes} />
+                <Increment setValue={setSemitone} minValue={-11} maxValue={11} label="Semitone" />
                 <div className="h-20">
                     <Line data={waveformGraphData} options={options} />
                 </div>
