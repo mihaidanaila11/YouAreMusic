@@ -97,25 +97,29 @@ const Adsr = ({ setParams, label }: AdsrProps) => {
                         minValue={0}
                         maxValue={10}
                         setValue={setAttack}
-                        label="Attack" />
+                        label="Attack" 
+                        sensitivity={2}/>
 
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setDecay}
-                        label="Decay" />
+                        label="Decay" 
+                        sensitivity={2}/>
 
                     <Knob
                         minValue={0}
                         maxValue={1}
                         setValue={setSustain}
-                        label="Sustain" />
+                        label="Sustain" 
+                        sensitivity={2}/>
 
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setRelease}
-                        label="Release" />
+                        label="Release"
+                        sensitivity={2} />
                 </div>
             </div>
         </div>
