@@ -24,6 +24,6 @@ export class ControlManager{
     }
 };
 
-const [indexFingerBus, middleFingerBus, ringFingerBus, pinkyFingerBus] = [new ControlManager(), new ControlManager(), new ControlManager(), new ControlManager()];
+const [indexFingerBus, middleFingerBus, ringFingerBus, pinkyFingerBus, leftHandYBus, rightHandYBus] = new Array(6).fill(null).map(() => new ControlManager());
 
-export { indexFingerBus, middleFingerBus, ringFingerBus, pinkyFingerBus };
+export { indexFingerBus, middleFingerBus, ringFingerBus, pinkyFingerBus, leftHandYBus, rightHandYBus };

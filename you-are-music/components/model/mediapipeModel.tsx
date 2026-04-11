@@ -1,4 +1,4 @@
-import { indexFingerBus, middleFingerBus, pinkyFingerBus, ringFingerBus } from '@/services/ControlManager';
+import { indexFingerBus, leftHandYBus, middleFingerBus, pinkyFingerBus, rightHandYBus, ringFingerBus } from '@/services/ControlManager';
 import { minMaxNormalize, pointsDistance } from '@/utils/Math';
 import { FilesetResolver, HandLandmarker, Landmark } from '@mediapipe/tasks-vision';
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
@@ -17,7 +17,8 @@ export interface PredictionBox{
 
 export interface ModelPrediction{
     predictionBox?: PredictionBox,
-    features: Landmark[]
+    features: Landmark[],
+    hand: "Left" | "Right",
 }
 
 interface DistanceLimit{
@@ -121,6 +122,8 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             height: videoStream.current.height,
         }
 
+        
+
         const preductions: ModelPrediction[] = prediction.landmarks.map( landmarkList => {
             const landmarks: Landmark[] = landmarkList.map(landmark => {
                 return{
@@ -131,7 +134,22 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                 }
             });
 
-            return{features: landmarks}
+            return{features: landmarks, hand: "Left"}
+        });
+
+        preductions.forEach(prediction => {
+            const middleBasePointX = prediction.features[9].x;
+            if(middleBasePointX < videoSize.width / 2){
+                prediction.hand = "Right";
+                rightHandYBus.publish(
+                    minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
+                );
+            }
+            else{
+                leftHandYBus.publish(
+                    minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
+                );
+            }
         });
 
         // controlBus.publish(preductions[0].features[0].x, preductions[0].features[0].y);
