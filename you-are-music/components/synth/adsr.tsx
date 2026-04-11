@@ -83,7 +83,7 @@ const Adsr = ({ setParams, label }: AdsrProps) => {
 
 
     return (
-        <div className="border-2 border-gray-300 h-full">
+        <div className="h-full">
             <h2>ADSR {label}</h2>
 
             <div className="flex flex-col">

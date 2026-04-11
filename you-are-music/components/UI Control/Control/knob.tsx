@@ -229,6 +229,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     }
 
     useEffect(() => {
+        if(!hasEnv) return;
         scaleRef.current.min = Math.max(minValue, minValue + currentValue);
         console.log("Updated scale min to", scaleRef.current.min);
     }, [currentValue])

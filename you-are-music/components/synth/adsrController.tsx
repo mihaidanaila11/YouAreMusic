@@ -55,7 +55,7 @@ const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
 
     console.log("Active envelope index:", activeEnv);
     return(
-        <div>
+        <div className="border-2 border-gray-300">
             <div className="w-1/2 flex justify-between">
                 {Array.from({ length: envelopes.current.length }, (_, i) => (
                     <span className="cursor-pointer dragableAdsr" key={i}
@@ -68,7 +68,7 @@ const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
                 ))}
             </div>
             
-            <div>
+            <div className="border-t-3 border-gray-300">
                 {envs}
             </div>
         </div>
