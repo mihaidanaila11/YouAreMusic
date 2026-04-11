@@ -22,6 +22,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
     const [detune, setDetune] = useState<number>(0);
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
     const [semitone, setSemitone] = useState<number>(0);
+    const [octave, setOctave] = useState<number>(0);
     const maxDetune = 100;
 
     const [unison, setUnison] = useState<number>(0);
@@ -128,10 +129,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
     useEffect(() => {
         if (!synthRef.current) return;
-        synthRef.current.detune.rampTo(detune + semitone * 100, 0.05);
+        synthRef.current.detune.rampTo(detune + semitone * 100 + octave * 1200, 0.05);
 
-        console.log("Detune set to:", detune + semitone * 100);
-    }, [detune, semitone]);
+        console.log("Detune set to:", detune + semitone * 100 + octave * 1200);
+    }, [detune, semitone, octave]);
 
 
     // Handle detune
@@ -153,8 +154,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
             const synthsNeeded = unison - currentUnison;
 
             for (let i = 0; i < synthsNeeded; i++) {
-                const newSynth = new Tone.Synth({...(synthRef.current.get() as Tone.SynthOptions),
-                     context: channelRef.current.context}).connect(channelRef.current);
+                const newSynth = new Tone.Synth({
+                    ...(synthRef.current.get() as Tone.SynthOptions),
+                    context: channelRef.current.context
+                }).connect(channelRef.current);
                 unisonVoices.current.push(newSynth);
             }
         }
@@ -199,12 +202,12 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
 
         if (!synthRef.current) {
 
-            synthRef.current = new Tone.Synth();
+            synthRef.current = new Tone.Synth({ context: channelRef.current.context });
             synthRef.current.oscillator.type = oscType;
         }
 
         synthRef.current.disconnect();
-        
+
 
         synthRef.current.connect(channelRef.current);
 
@@ -247,19 +250,15 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         synthRef.current.oscillator.type = oscType;
     }, [oscType]);
 
-    // Handle Semitone Change
-    useEffect(() => {
-        if (!synthRef.current) return;
-
-        
-    }, [semitone])
-
     return (
 
         <div className="select-none border-2 border-gray-300">
             <div className="">
                 <OptionPick setOption={setOscType} options={OscTypes} />
-                <Increment setValue={setSemitone} minValue={-11} maxValue={11} label="Semitone" />
+                <div className="flex">
+                    <Increment setValue={setSemitone} minValue={-11} maxValue={11} label="Semitone" />
+                    <Increment setValue={setOctave} minValue={-3} maxValue={3} label="Octave" />
+                </div>
                 <div className="h-20">
                     <Line data={waveformGraphData} options={options} />
                 </div>
