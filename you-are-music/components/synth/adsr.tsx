@@ -29,9 +29,8 @@ const Adsr = ({ setParams, label }: AdsrProps) => {
         return [
             { x: 0, y: 0 },
             { x: a, y: attackValue },
-            { x: a + d, y: decayValue },
-            { x: a + d + s, y: sustainValue },
-            { x: a + d + s + r, y: 0 },
+            { x: a + d, y: sustainValue },
+            { x: a + d + r, y: 0 },
         ];
     }, [attackTime, decayTime, sustainValue, releaseTime]);
 

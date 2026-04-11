@@ -153,8 +153,10 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
         const valuePercent = (maxEnvelopeValue - minEnvelopeValue) / (maxValue - minValue);
 
-        const valueLineLen = Math.max(0, Math.min(circleUsableLen * valuePercent, circleUsableLen));
-        const offset = Math.max(0, Math.min(circleUsableLen * minEnvelopeValue / maxValue, circleUsableLen));
+        const valueLineLen = Math.max(0, Math.min(circleUsableLen * Math.abs(valuePercent), circleUsableLen));
+        const offset = Math.max(0, Math.min(circleUsableLen * Math.min(maxEnvelopeValue, minEnvelopeValue) / maxValue, circleUsableLen));
+
+        console.log("valuePercent", valuePercent, "valueLineLen", valueLineLen, "offset", offset);
 
         envelopeCircleRef.current.setAttribute("stroke-dasharray", `0, ${offset}, ${valueLineLen}, ${circumference - valueLineLen - offset}`);
     }, [maxEnvelopeValue, minEnvelopeValue, hasEnv]);
@@ -178,6 +180,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
             newValue = Math.max(minValue, Math.min(maxValue, newValue));
 
             setMaxEnvelopeValue(newValue);
+            console.log("Dragging env, new max value:", newValue);
         };
 
         const handleMouseUp = () => {
@@ -216,7 +219,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     }
 
     // Handle envelope drag and drop
-    const scaleRef = useRef(new Tone.Scale(Math.max(minValue, minValue + currentValue), maxValue));
+    const scaleRef = useRef(new Tone.Scale(minEnvelopeValue, maxEnvelopeValue));
     const handleEnvDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         const draggedEnv = AdsrDragManager.getCurrentDragged();
@@ -230,9 +233,11 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
     useEffect(() => {
         if(!hasEnv) return;
-        scaleRef.current.min = Math.max(minValue, minValue + currentValue);
+        scaleRef.current.min = currentValue;
+        scaleRef.current.max = maxEnvelopeValue;
         console.log("Updated scale min to", scaleRef.current.min);
-    }, [currentValue])
+        console.log("Updated scale max to", scaleRef.current.max);
+    }, [currentValue, maxEnvelopeValue])
 
 
     // ------------
