@@ -39,6 +39,13 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     const valueCircleRef = useRef<SVGCircleElement | null>(null);
     const backValueCircleRef = useRef<SVGCircleElement | null>(null);
 
+    const [minEnvelopeValue, setMinEnvelopeValue] = useState(currentValue);
+    const [maxEnvelopeValue, setMaxEnvelopeValue] = useState(maxValue);
+    const envelopeCircleRef = useRef<SVGCircleElement | null>(null);
+    const [isEnvDragged, setIsEnvDragged] = useState(false);
+    const startEnvYRef = useRef(0);
+    const [hasEnv, setHasEnv] = useState(false);
+
     const [showMenu, setShowMenu] = useState(false);
     const [showBindMenu, setShowBindMenu] = useState(false);
 
@@ -78,6 +85,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
             setRotation(newRotation);
             setCurrent(newValue);
+            setMinEnvelopeValue(newValue);
         }
 
         const handleMouseUp = () => {
@@ -133,6 +141,58 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         backValueCircleRef.current.setAttribute("stroke-dasharray", `${circleUsableLen}, ${circumference - circleUsableLen}`);
     }, [backValueCircleRef.current])
 
+    // Handle Envelope circle
+
+    useEffect(() => {
+        if (!envelopeCircleRef.current) return;
+
+        const circleRadius = envelopeCircleRef.current.r.animVal.value;
+        const circumference = 2 * Math.PI * circleRadius;
+
+        const circleUsableLen = usableLen * circleRadius;
+
+        const valuePercent = (maxEnvelopeValue - minEnvelopeValue) / (maxValue - minValue);
+
+        const valueLineLen = Math.max(0, Math.min(circleUsableLen * valuePercent, circleUsableLen));
+        const offset = Math.max(0, Math.min(circleUsableLen * minEnvelopeValue / maxValue, circleUsableLen));
+
+        envelopeCircleRef.current.setAttribute("stroke-dasharray", `0, ${offset}, ${valueLineLen}, ${circumference - valueLineLen - offset}`);
+    }, [maxEnvelopeValue, minEnvelopeValue, hasEnv]);
+
+    const handleEnvDrag = (e: MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setIsEnvDragged(true);
+        startEnvYRef.current = e.clientY;
+    }
+
+    useEffect(() => {
+        if (!isEnvDragged) return;
+
+        const handleMouseMove = (e: globalThis.MouseEvent) => {
+            const currentYPos = e.clientY;
+            const delta = startEnvYRef.current - currentYPos;
+            const steps = Math.round(delta / sensitivity);
+
+            let newValue = maxEnvelopeValue + steps * step;
+
+            newValue = Math.max(minValue, Math.min(maxValue, newValue));
+
+            setMaxEnvelopeValue(newValue);
+        };
+
+        const handleMouseUp = () => {
+            setIsEnvDragged(false);
+        }
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isEnvDragged]);
+
     // Handle outside effect
     useEffect(() => {
         setValue(currentValue);
@@ -156,22 +216,23 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     }
 
     // Handle envelope drag and drop
-    const scaleRef = useRef(new Tone.Scale( Math.max(minValue, minValue + currentValue), maxValue));
+    const scaleRef = useRef(new Tone.Scale(Math.max(minValue, minValue + currentValue), maxValue));
     const handleEnvDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         const draggedEnv = AdsrDragManager.getCurrentDragged();
-        if(!draggedEnv) return;
+        if (!draggedEnv) return;
 
-        draggedEnv.connect(scaleRef.current.set({context: draggedEnv.context}));
+        draggedEnv.connect(scaleRef.current.set({ context: draggedEnv.context }));
         console.log("dropped", draggedEnv);
         setEnvelope?.(scaleRef.current);
+        setHasEnv(true);
     }
 
     useEffect(() => {
         scaleRef.current.min = Math.max(minValue, minValue + currentValue);
         console.log("Updated scale min to", scaleRef.current.min);
     }, [currentValue])
-    
+
 
     // ------------
 
@@ -180,36 +241,57 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
             <div onContextMenu={rightClickHandler} className="w-fit flex flex-col items-center select-none">
                 <span className="text-sm">{label}</span>
 
-                <div onMouseDown={handleMouseDown} className="w-10 aspect-square select-none relative overflow-hidden">
-                    <svg width={"100%"} height={"100%"} className="absolute z-10 rotate-135">
-                        <circle r={"45%"} stroke="orange" strokeWidth={3}
-                            fill="none"
-                            cx={"50%"} cy={"50%"}
-                            ref={backValueCircleRef} />
-                    </svg>
-
-                    <svg width={"100%"} height={"100%"} className="absolute z-20 rotate-135">
-                        <circle r={"45%"} stroke="red" strokeWidth={1}
-                            fill="none"
-                            cx={"50%"} cy={"50%"}
-                            ref={valueCircleRef} />
+                <div className="w-15 aspect-square">
+                    <div className="w-full aspect-square relative">
+                        {hasEnv && (
+                            <div onMouseDown={handleEnvDrag} className="w-full aspect-square relative cursor-ew-resize p-2">
+                                <svg width={"100%"} height={"100%"} className="absolute z-10 rotate-135 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ">
+                                    <circle r={"45%"} stroke="blue" strokeWidth={3}
+                                        fill="none"
+                                        cx={"50%"} cy={"50%"}
+                                        ref={envelopeCircleRef} />
+                                </svg>
+                            </div>)}
 
 
-                    </svg>
+                        <div onMouseDown={handleMouseDown} className="w-80/100 bottom-1/2 right-1/2 translate-1/2 aspect-square select-none absolute overflow-hidden cursor-ns-resize z-20">
+                            <div className="aspect-square w-full relative">
 
-                    <div className="w-70/100 aspect-square bg-amber-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                        style={{
-                            transform: `rotate(${currentRotation}deg)`
-                        }} >
-                        <div className="bg-red-500 w-1/12 h-1/3 rounded-full absolute top-0 left-1/2 -translate-x-1/2" />
+                                <svg width={"100%"} height={"100%"} className="absolute z-10 rotate-135">
+                                    <circle r={"45%"} stroke="orange" strokeWidth={3}
+                                        fill="none"
+                                        cx={"50%"} cy={"50%"}
+                                        ref={backValueCircleRef} />
+                                </svg>
+
+                                <svg width={"100%"} height={"100%"} className="absolute z-20 rotate-135">
+                                    <circle r={"45%"} stroke="red" strokeWidth={1}
+                                        fill="none"
+                                        cx={"50%"} cy={"50%"}
+                                        ref={valueCircleRef} />
+                                </svg>
+                            </div>
+
+
+
+                            <div className="w-70/100 aspect-square bg-amber-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                                style={{
+                                    transform: `rotate(${currentRotation}deg)`
+                                }} >
+                                <div className="bg-red-500 w-1/12 h-1/3 rounded-full absolute top-0 left-1/2 -translate-x-1/2" />
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+
+
                 <span className="text-xs">{currentValue.toFixed(2)}</span>
 
 
 
                 <div className="absolute right-0 z-100 w-full">
-                    { showMenu && <div className="">
+                    {showMenu && <div className="">
 
                         <KnobMenu options={knobMenuOptions} />
 
