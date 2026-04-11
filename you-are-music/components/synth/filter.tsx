@@ -4,10 +4,13 @@ import Knob from "../UI Control/Control/knob";
 import { Line } from "react-chartjs-2";
 import { Chart, ChartData, ChartOptions } from "chart.js";
 import { mapValues } from "@/utils/Math";
+import OptionPick from "../UI Control/Control/optionPick";
 
 interface FilterProps{
     filterRef: RefObject<Tone.Filter | null>,
 };
+
+const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "peaking"] as BiquadFilterType[];
 
 const [minFreq, maxFreq] = [20, 20000];
 
@@ -18,6 +21,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
 
     const chartDataRef = useRef<ChartData<"line", number[], number> | null>(null);
     const chartLineRef = useRef<Chart<"line"> | null>(null);
+    const [filterType, setFilterType] = useState<BiquadFilterType>(filterTypes[0]);
 
     useEffect(() => {
         if(!filterRef.current){
@@ -30,6 +34,11 @@ const FilterController = ( {filterRef}: FilterProps) => {
 
         filterRef.current.frequency.rampTo(frequency, 0.05);
 
+    }, [frequency]);
+
+
+    useEffect(() => {
+        console.log("Updating chart data");
         const chartLabels = getChartLabels(30);
         const chartValues = getChartValues(chartLabels);
 
@@ -43,9 +52,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
         if(chartLineRef.current){
             chartLineRef.current.update();
         }
-
-    }, [frequency]);
-
+    }, [frequency, filterType])
     const listenValue = useRef<{x: number, y:number}>({x: 0, y: 0});
 
     useEffect(() => {
@@ -64,6 +71,12 @@ const FilterController = ( {filterRef}: FilterProps) => {
 
         // return () => unsubscribe();
     }, [listenValue])
+
+    // Handle filter type change
+    useEffect(() => {
+        if(!filterRef.current) return;
+        filterRef.current.type = filterType;
+    }, [filterType])
 
     const getChartLabels = (resolution: number) => {
         const labels = Array.from({length: resolution}, (_, index) => {
@@ -87,6 +100,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
     
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         elements:{
             point:{
                 radius: 0,
@@ -97,6 +111,9 @@ const FilterController = ( {filterRef}: FilterProps) => {
         },
         scales:{
             x:{
+                border: {
+                    display: false,
+                },
                 grid: {
                     display: false,
                 },
@@ -109,18 +126,34 @@ const FilterController = ( {filterRef}: FilterProps) => {
             },
 
             y: {
+                border: {
+                    display: false,
+                },
                 min: -60,
                 max: 5,
                 grid:{
                     display: false,
                 },
+
+                ticks: {
+                    display: false,
+                }
             }
         },
         animation: false
     } as ChartOptions<"line">;
 
     return(
-    <div className="flex">
+    <div className="flex flex-col border-2 border-gray-300">
+        <span>Filter</span>
+
+        <OptionPick setOption={setFilterType} options={filterTypes} />
+        {chartDataRef.current && 
+        <div className="w-full">
+            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
+        </div>
+        }
+
         <Knob 
         setValue={setFreq}
         label="Frequency"
@@ -129,12 +162,6 @@ const FilterController = ( {filterRef}: FilterProps) => {
         mode="exponential"
         sensitivity={0.4}
         />
-
-        {chartDataRef.current && 
-        <div className="w-sm">
-            <Line data={chartDataRef.current} options={options} ref={chartLineRef}/>
-        </div>
-        }
 
         
     </div>

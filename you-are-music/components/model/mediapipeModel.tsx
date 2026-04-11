@@ -119,8 +119,8 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
         const preductions: ModelPrediction[] = prediction.landmarks.map( landmarkList => {
             const landmarks: Landmark[] = landmarkList.map(landmark => {
                 return{
-                    x: landmark.x * videoSize.width,
-                    y: landmark.y * videoSize.height,
+                    x: landmark.x,
+                    y: landmark.y,
                     z: landmark.z,
                     visibility: landmark.visibility,
                 }
@@ -161,12 +161,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
         const ringFingerDistance = pointsDistance(ringPoint, thumbPoint) / wristToMiddleBaseDistance;
         const pinkyFingerDistance = pointsDistance(pinkyPoint, thumbPoint) / wristToMiddleBaseDistance;
 
-        // console.log("Index finger distance: ", indexFingerDistance);
-
-        // const newPrediction: ModelPrediction = {
-        //     features: landmarks
-        // }
-
         setPrediction(preductions);
         requestAnimationFrame(predict);
 
@@ -201,16 +195,12 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
                     indexFingerLimits.current.min = calibrationResult;
 
-                    console.log("Index finger min distance: ", indexFingerLimits.current.min);
-
                     break;
                 case "indexMax":
                     const indexMaxCalibrationResult = calibrateKeypoint(indexFingerDistance, maxCalibrationValidation, "middleMin", "Pinch your middle finger and thumb and hold for calibration.");
                     if(indexMaxCalibrationResult === null) return;
 
                     indexFingerLimits.current.max = indexMaxCalibrationResult;
-
-                    console.log("Index finger max distance: ", indexFingerLimits.current.max);
 
                     break;
 
@@ -220,8 +210,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
                     middleFingerLimits.current.min = middleMinCalibrationResult;
 
-                    console.log("Middle finger min distance: ", middleFingerLimits.current.min);
-
                     break;
 
                 case "middleMax":
@@ -229,8 +217,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                     if(middleMaxCalibrationResult === null) return;
 
                     middleFingerLimits.current.max = middleMaxCalibrationResult;
-
-                    console.log("Middle finger max distance: ", middleFingerLimits.current.max);
 
                     break;
 
@@ -240,8 +226,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
                     ringFingerLimits.current.min = ringMinCalibrationResult;
 
-                    console.log("Ring finger min distance: ", ringFingerLimits.current.min);
-
                     break;
 
                 case "ringMax":
@@ -249,8 +233,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                     if(ringMaxCalibrationResult === null) return;
 
                     ringFingerLimits.current.max = ringMaxCalibrationResult;
-
-                    console.log("Ring finger max distance: ", ringFingerLimits.current.max);
 
                     break;
 
@@ -260,8 +242,6 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
                     pinkyFingerLimits.current.min = pinkyMinCalibrationResult;
 
-                    console.log("Pinky finger min distance: ", pinkyFingerLimits.current.min);
-
                     break;
 
                 case "pinkyMax":
@@ -270,13 +250,11 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
                     pinkyFingerLimits.current.max = pinkyMaxCalibrationResult;
 
-                    console.log("Pinky finger max distance: ", pinkyFingerLimits.current.max);
                     break;
 
                 case "done":
                     calibrationMode.current = false;
                     setCalibrationMode(false);
-                    setCalibrationMessage("Calibration done.");
                     break;
 
                 default:
@@ -301,7 +279,7 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
     }
 
     return(
-        <div>
+        <div className='flex'>
             <p>
                 {loading ? "Model is loading" : (
                     error ? error : ("Model loaded.")

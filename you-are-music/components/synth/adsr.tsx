@@ -5,10 +5,11 @@ import { ChartData, Chart, CategoryScale, LinearScale, PointElement, LineElement
 import * as Tone from "tone"
 
 interface AdsrProps {
-    synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>
+    setParams?: (attack: number, decay: number, sustain: number, release: number) => void,
+    label?: string
 }
 
-const Adsr = ({ synthRef }: AdsrProps) => {
+const Adsr = ({ setParams, label }: AdsrProps) => {
     const [attackTime, setAttack] = useState<number>(0);
     const [decayTime, setDecay] = useState<number>(0);
     const [sustainValue, setSustain] = useState<number>(0);
@@ -28,20 +29,13 @@ const Adsr = ({ synthRef }: AdsrProps) => {
         return [
             { x: 0, y: 0 },
             { x: a, y: attackValue },
-            { x: a + d, y: decayValue },
-            { x: a + d + s, y: sustainValue },
-            { x: a + d + s + r, y: 0 },
+            { x: a + d, y: sustainValue },
+            { x: a + d + r, y: 0 },
         ];
     }, [attackTime, decayTime, sustainValue, releaseTime]);
 
     useEffect(() => {
-        if (!synthRef || !synthRef.current) return;
-        synthRef.current.envelope.set({
-            attack: attackTime,
-            decay: decayTime,
-            sustain: sustainValue,
-            release: releaseTime
-        });
+        setParams?.(attackTime, decayTime, sustainValue, releaseTime);
     }, [graphPoints])
 
     Chart.register(
@@ -60,6 +54,7 @@ const Adsr = ({ synthRef }: AdsrProps) => {
 
     const options = {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'top' as const,
@@ -87,41 +82,43 @@ const Adsr = ({ synthRef }: AdsrProps) => {
 
 
     return (
-        <div>
-            <h2>Controlls</h2>
+        <div className="h-full">
+            <h2>ADSR {label}</h2>
 
-            <div className="flex">
+            <div className="flex flex-col">
 
+                <div className="w-full">
+                    <Line options={options} data={chartData} />
+                </div>
 
-
-                <div className="flex">
+                <div className="flex gap-1">
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setAttack}
-                        label="Attack" />
+                        label="Attack" 
+                        sensitivity={2}/>
 
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setDecay}
-                        label="Decay" />
+                        label="Decay" 
+                        sensitivity={2}/>
 
                     <Knob
                         minValue={0}
                         maxValue={1}
                         setValue={setSustain}
-                        label="Sustain" />
+                        label="Sustain" 
+                        sensitivity={2}/>
 
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setRelease}
-                        label="Release" />
-                </div>
-
-                <div className="w-xl h-fit">
-                    <Line options={options} data={chartData} />
+                        label="Release"
+                        sensitivity={2} />
                 </div>
             </div>
         </div>
