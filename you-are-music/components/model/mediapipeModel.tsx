@@ -25,6 +25,7 @@ interface DistanceLimit{
     max: number,
 }
 
+
 export default function HandTracker({ videoStream, setPrediction } : HandTrackerProps){
 
     const [handLandmarker, setHandLandmarker] = useState<HandLandmarker>();
@@ -47,6 +48,8 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
     const ringFingerLimits = useRef<DistanceLimit>({min: 100, max: 0});
     const pinkyFingerLimits = useRef<DistanceLimit>({min: 100, max: 0});
 
+    const waitTime = 1/30 * 1000; // 30 fps
+    const lastPredictionTime = useRef(0);
 
     // Setup mediapipe model
     useEffect(() => {
@@ -98,6 +101,11 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             requestAnimationFrame(predict);
             return;
         }
+
+        if(performance.now() - lastPredictionTime.current < waitTime){
+            requestAnimationFrame(predict);
+            return;
+        }
             
 
         const timeStamp = performance.now();
@@ -145,6 +153,8 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
         setPrediction(preductions);
         requestAnimationFrame(predict);
+
+        lastPredictionTime.current = performance.now();
 
         const minCalibrationValidation = (distance: number) => distance < 0.2;
         const maxCalibrationValidation = (distance: number) => distance > 0.8;
