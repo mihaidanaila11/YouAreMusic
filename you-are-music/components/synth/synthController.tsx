@@ -10,12 +10,13 @@ import Increment from "../UI Control/Control/increment";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
-    nodes?: RefObject<Tone.ToneAudioNode | null>[]
+    nodes?: RefObject<Tone.ToneAudioNode | null>[],
+    adsrEnvelopes: RefObject<Tone.Envelope[]>
 }
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
 
-const SynthController = ({ synthRef, nodes }: ControllerProps) => {
+const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) => {
 
     const [gain, setGain] = useState<number>(50);
     const [pitch, setPitch] = useState<number>(20);
@@ -124,7 +125,11 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         if (!synthRef.current) return;
         const midiPitch = Tone.Frequency(pitch).toMidi();
         const midiFrequency = Tone.Frequency(midiPitch, "midi").toFrequency();
-        synthRef.current.frequency.rampTo(midiFrequency, 0.05);
+
+        if (!Number.isFinite(midiFrequency) || midiFrequency <= 0) return;
+
+        console.log("Setting frequency to:", midiFrequency);
+        synthRef.current.frequency.setValueAtTime(midiFrequency, Tone.now());
     }, [pitch]);
 
     useEffect(() => {
@@ -185,12 +190,20 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(pitch);
         });
+
+        adsrEnvelopes.current.forEach(env => {
+            env.triggerAttack();
+        });
     }
 
     const stopNote = () => {
         synthRef.current?.triggerRelease();
         unisonVoices.current.forEach((synth) => {
             synth.triggerRelease();
+        });
+
+        adsrEnvelopes.current.forEach(env => {
+            env.triggerRelease();
         });
     };
 
@@ -272,6 +285,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
                     <Knob
                         label="Gain"
                         setValue={setGain}
+                        setEnvelope={(env) => {
+                            if(!channelRef.current) return;
+                            env.connect(channelRef.current.volume);
+                        }}
                     />
 
                     <Knob
@@ -279,6 +296,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
                         setValue={setPitch}
                         minValue={20}
                         maxValue={1000}
+                        setEnvelope={(env) => {
+                            if(!synthRef.current) return;
+                            env.connect(synthRef.current.frequency)
+                        }}
                     />
                 </div>
 
@@ -289,6 +310,10 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
                         minValue={0}
                         maxValue={100}
                         defaultValue={0}
+                        setEnvelope={(env) => {
+                            if(!synthRef.current) return;
+                            env.connect(synthRef.current.detune);
+                        }}
                     />
 
                     <Knob
@@ -299,6 +324,7 @@ const SynthController = ({ synthRef, nodes }: ControllerProps) => {
                         step={1}
                         sensitivity={8}
                         defaultValue={0}
+                        setEnvelope= { () => {} }
                     />
 
                 </div>
