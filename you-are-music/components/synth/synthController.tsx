@@ -24,6 +24,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
     const [semitone, setSemitone] = useState<number>(0);
     const [octave, setOctave] = useState<number>(0);
+    const [bpm, setBpm] = useState<number>(120);
     const maxDetune = 100;
 
     const [unison, setUnison] = useState<number>(0);
@@ -263,6 +264,11 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
         synthRef.current.oscillator.type = oscType;
     }, [oscType]);
 
+    // Handle BPM change
+    useEffect(() => {
+        Tone.Transport.bpm.rampTo(bpm, 0.1);
+    }, [bpm]);
+
     return (
 
         <div className="select-none border-2 border-gray-300">
@@ -300,6 +306,14 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
                             if(!synthRef.current) return;
                             env.connect(synthRef.current.frequency)
                         }}
+                    />
+
+                    <Knob
+                        label="BPM"
+                        setValue={setBpm}
+                        minValue={20}
+                        maxValue={500}
+                        sensitivity={4}
                     />
                 </div>
 

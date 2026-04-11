@@ -7,6 +7,7 @@ import * as Tone from "tone";
 import FilterController from "./filter";
 import ReverbController from "./reverb";
 import AdsrController from "./adsrController";
+import Arp from "./Arp/arp";
 
 const Synth = () => {
     const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(null);
@@ -29,7 +30,8 @@ const Synth = () => {
                 
                 <FilterController filterRef={filterRef}/>
             </div>
-            <ReverbController reverbRef={reverbRef}/>            
+            <ReverbController reverbRef={reverbRef}/> 
+            <Arp synthRef={synthRef} />           
 
         </div>
     )
