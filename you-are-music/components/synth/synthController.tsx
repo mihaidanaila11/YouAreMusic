@@ -7,6 +7,7 @@ import { Line } from "react-chartjs-2";
 import { OmniOscillatorType } from "tone/build/esm/source/oscillator/OscillatorInterface";
 import OptionPick from "../UI Control/Control/optionPick";
 import Increment from "../UI Control/Control/increment";
+import ScaleController from "./scale";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -31,6 +32,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
     const unisonVoices = useRef<Tone.Synth[]>([]);
 
     const [ctx, setCtx] = useState<Tone.BaseContext | null>(null);
+    const [scaleNotes, setScaleNotes] = useState<number[]>([]);
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -307,6 +309,8 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
                             env.connect(synthRef.current.frequency)
                         }}
                     />
+
+                    <ScaleController setNotes={setScaleNotes} />
 
                     <Knob
                         label="BPM"

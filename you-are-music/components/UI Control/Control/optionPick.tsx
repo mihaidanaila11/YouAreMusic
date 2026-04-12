@@ -24,7 +24,13 @@ const OptionPick = ({ setOption, options }: OptionPickProps) => {
     return(
         <div className="w-full flex items-center justify-between ">
             <div onClick={handlePrev} className="cursor-pointer">&lt;</div>
-            <div>{options[currentOptionIndex]}</div>
+            <select onChange={(e) => handleOptionChange(parseInt(e.target.value))} value={currentOptionIndex}>
+                {options.map((option, index) => (
+                    <option key={index} value={index}>
+                        {option}
+                    </option>
+                ))}
+            </select>
             <div onClick={handleNext} className="cursor-pointer">&gt;</div>
         </div>
     )

@@ -8,6 +8,7 @@ import FilterController from "./filter";
 import ReverbController from "./reverb";
 import AdsrController from "./adsrController";
 import Arp from "./Arp/arp";
+import ScaleController from "./scale";
 
 const Synth = () => {
     const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(null);
