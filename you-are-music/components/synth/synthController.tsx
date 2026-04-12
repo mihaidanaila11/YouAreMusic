@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useState, useRef, useMemo } from "react";
+import { RefObject, useEffect, useState, useRef, useMemo, useCallback } from "react";
 import * as Tone from "tone";
 import Knob from "../UI Control/Control/knob";
 import { mapValues } from "@/utils/Math";
@@ -36,6 +36,8 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
     const [scaleNotes, setScaleNotes] = useState<number[]>([]);
 
     const [snapToScale, setSnapToScale] = useState<boolean>(false);
+    const [noteRegions, setNoteRegions] = useState(7);
+    const [snapOctave, setSnapOctave] = useState<number>(4);
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -134,7 +136,6 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
 
         if (!Number.isFinite(midiFrequency) || midiFrequency <= 0) return;
 
-        console.log("Setting frequency to:", midiFrequency);
         synthRef.current.frequency.setValueAtTime(midiFrequency, Tone.now());
     }, [pitch]);
 
@@ -189,6 +190,20 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
 
 
     }, [unison])
+
+    const pitchMiddleware = useCallback((value: number, min: number, max: number) => {
+        const valuePercent = (value - min) / (max - min);
+        if (snapToScale && scaleNotes.length > 0) {
+            // Implementation for pitch mapping within the scale
+            const snapedRegion = Math.floor(valuePercent * (noteRegions));
+            const octave = (snapOctave + 4) * 12  + Math.floor(snapedRegion / scaleNotes.length) * 12;
+            const note = scaleNotes[snapedRegion % scaleNotes.length] + octave;
+            console.log("Snapped Note:", note, snapOctave);
+            const freq = Tone.Frequency(note, "midi").toFrequency();
+            return freq;
+        }
+        return value;
+    }, [snapToScale, scaleNotes, snapOctave, noteRegions]);
 
     const playNote = async () => {
         if (!synthRef.current) return;
@@ -274,6 +289,8 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
         Tone.Transport.bpm.rampTo(bpm, 0.1);
     }, [bpm]);
 
+    
+
     return (
 
         <div className="select-none border-2 border-gray-300">
@@ -311,10 +328,19 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
                             if(!synthRef.current) return;
                             env.connect(synthRef.current.frequency)
                         }}
+                        mapMiddleware={pitchMiddleware}
                     />
 
-                    {snapToScale && <ScaleController setNotes={setScaleNotes} />}
-                    <Toggle label="Snap to Scale" onToggle={(value) => setSnapToScale(value)} />
+                    {snapToScale && (
+                        <div>
+                            <ScaleController setNotes={setScaleNotes} />
+                            <Increment label="Snap Octave" setValue={setSnapOctave} minValue={-3} maxValue={3} defaultValue={0}/>
+                            <Increment label="Note Regions" setValue={setNoteRegions} minValue={1} maxValue={24} defaultValue={7}/>
+                        </div>
+                    )}
+                    <Toggle label="Snap to Scale" onToggle={(value) => {
+                        console.log("Snap to Scale:", value);
+                        setSnapToScale(value)}} />
 
                     <Knob
                         label="BPM"

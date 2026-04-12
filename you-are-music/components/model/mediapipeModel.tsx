@@ -142,12 +142,12 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             if(middleBasePointX < 1/2){
                 prediction.hand = "Right";
                 rightHandYBus.publish(
-                    minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
+                    minMaxNormalize(prediction.features[9].y, 0, 1)
                 );
             }
             else{
                 leftHandYBus.publish(
-                    minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
+                    minMaxNormalize(prediction.features[9].y, 0, 1)
                 );
             }
         });

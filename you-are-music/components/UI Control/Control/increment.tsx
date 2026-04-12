@@ -1,14 +1,21 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 interface IncrementProps{
     setValue: Dispatch<SetStateAction<number>>,
     minValue?: number,
     maxValue?: number,
     label?: string,
+    defaultValue?: number
 }
 
-const Increment = ( {setValue, minValue = 0, maxValue = 11, label}: IncrementProps ) => {
+const Increment = ( {setValue, minValue = 0, maxValue = 11, label, defaultValue}: IncrementProps ) => {
     const [currentValue, setCurrent] = useState(0);
+
+    useEffect(() => {
+        if(!!defaultValue){
+            setCurrent(defaultValue);
+        }
+    }, [defaultValue]);
 
     const handleIncrement = () => {
         const newValue = Math.max(minValue, Math.min(maxValue, currentValue + 1));

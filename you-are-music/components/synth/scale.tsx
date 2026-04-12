@@ -13,7 +13,8 @@ const ScaleController = ({ setNotes }: ScaleControllerProps) => {
 
     return(
         <OptionPick setOption={(option) => {
-            setNotes(scales[option as keyof typeof scales]);
+            const notes = scales[option as keyof typeof scales];
+            setNotes(notes);
         }}
         options={Object.keys(scales)} />
     )
