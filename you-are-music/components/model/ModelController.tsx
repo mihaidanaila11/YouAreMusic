@@ -87,12 +87,12 @@ const ModelController = () => {
             return;
         }
         canvasContext?.clearRect(0, 0, overlayCanvas.current.width, overlayCanvas.current.height);
-        predictions.forEach((prediction, index) => {
+        predictions.forEach((prediction) => {
             if (!overlayCanvas.current) {
                 return;
             }
 
-            drawPrediction(prediction, overlayCanvas.current, index === 0 ? "green" : "yellow");
+            drawPrediction(prediction, overlayCanvas.current, prediction.hand === "Left" ? "green" : "yellow");
         })
 
     }, [predictions])
@@ -107,7 +107,7 @@ const ModelController = () => {
             {/* <ModelRunner webcamCanvasRef={webcamCanvas} setPrediction={setPrediction}/> */}
 
 
-            <div className='relative w-30'>
+            <div className='relative w-60'>
                 <canvas width={640} height={480}
                     ref={overlayCanvas} className='absolute top-0 left-0 w-full'></canvas>
                 <Webcam videoRef={videoStream} />

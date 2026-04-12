@@ -139,7 +139,7 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
 
         preductions.forEach(prediction => {
             const middleBasePointX = prediction.features[9].x;
-            if(middleBasePointX < videoSize.width / 2){
+            if(middleBasePointX < 1/2){
                 prediction.hand = "Right";
                 rightHandYBus.publish(
                     minMaxNormalize(prediction.features[9].y / videoSize.height, 0, 1)
