@@ -8,6 +8,7 @@ import { OmniOscillatorType } from "tone/build/esm/source/oscillator/OscillatorI
 import OptionPick from "../UI Control/Control/optionPick";
 import Increment from "../UI Control/Control/increment";
 import ScaleController from "./scale";
+import Toggle from "../UI Control/Control/toggle";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -33,6 +34,8 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
 
     const [ctx, setCtx] = useState<Tone.BaseContext | null>(null);
     const [scaleNotes, setScaleNotes] = useState<number[]>([]);
+
+    const [snapToScale, setSnapToScale] = useState<boolean>(false);
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -310,7 +313,8 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
                         }}
                     />
 
-                    <ScaleController setNotes={setScaleNotes} />
+                    {snapToScale && <ScaleController setNotes={setScaleNotes} />}
+                    <Toggle label="Snap to Scale" onToggle={(value) => setSnapToScale(value)} />
 
                     <Knob
                         label="BPM"
