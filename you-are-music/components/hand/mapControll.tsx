@@ -18,9 +18,6 @@ const MapControll = ({ mapKnobValue, showMenu }: MapControllProps) => {
         rightHandY: { name: "Right Hand Y", controlManager: rightHandYBus },
     });
 
-    const subscribeFunction = (distance: number) => {
-        mapKnobValue(distance);
-    }
 
     type KeypointKey = keyof typeof availableKeypoints;
 
@@ -28,10 +25,11 @@ const MapControll = ({ mapKnobValue, showMenu }: MapControllProps) => {
 
     useEffect(() => {
         if(selectedKeypoint === "-") return;
-        const unsubscribe = availableKeypoints[selectedKeypoint].controlManager.subscribe(subscribeFunction);
+        const unsubscribe = 
+        availableKeypoints[selectedKeypoint].controlManager.subscribe(mapKnobValue);
 
         return () => unsubscribe();
-    }, [selectedKeypoint]);
+    }, [selectedKeypoint, mapKnobValue]);
     return (
         <>
             {

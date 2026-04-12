@@ -1,4 +1,4 @@
-import { Dispatch, MouseEvent, SetStateAction, SVGProps, useEffect, useRef, useState } from "react";
+import { Dispatch, MouseEvent, SetStateAction, SVGProps, useCallback, useEffect, useRef, useState } from "react";
 import { mapValues } from "@/utils/Math";
 import KnobMenu from "./knobMenu";
 import MapControll from "@/components/hand/mapControll";
@@ -18,10 +18,11 @@ interface knobProps {
     mode?: KnobMode,
     step?: number,
     sensitivity?: number,
-    setEnvelope?: (env: Tone.Scale) => void
+    setEnvelope?: (env: Tone.Scale) => void,
+    mapMiddleware?: (value: number, min: number, max: number) => number
 }
 
-const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, setEnvelope }: knobProps) => {
+const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, setEnvelope, mapMiddleware }: knobProps) => {
 
     useEffect(() => {
         if (defaultValue) {
@@ -213,10 +214,11 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         { label: "Bind to...", action: () => setShowBindMenu(prev => !prev) }
     ]
 
-    const mapKnobValue = (value: number) => {
+    const mapKnobValue = useCallback((value: number) => {
         const mappedValue = mapValues(value, 0, 1, minValue, maxValue);
-        setCurrent(mappedValue);
-    }
+        const finalValue = mapMiddleware ? mapMiddleware(mappedValue, minValue, maxValue) : mappedValue;
+        setCurrent(finalValue);
+    }, [minValue, maxValue, mapMiddleware]);
 
     // Handle envelope drag and drop
     const scaleRef = useRef(new Tone.Scale(minEnvelopeValue, maxEnvelopeValue));
