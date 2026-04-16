@@ -9,6 +9,7 @@ import OptionPick from "../UI Control/Control/optionPick";
 import Increment from "../UI Control/Control/increment";
 import ScaleController from "./scale";
 import Toggle from "../UI Control/Control/toggle";
+import GainKnob from "../UI Control/Control/Synth/gainKnob";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -20,7 +21,7 @@ const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorTyp
 
 const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) => {
 
-    const [gain, setGain] = useState<number>(50);
+    // const [gain, setGain] = useState<number>(50);
     const [pitch, setPitch] = useState<number>(20);
     const [detune, setDetune] = useState<number>(0);
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
@@ -46,16 +47,18 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
         const getBuffer = async () => {
             if (!synthRef.current) return null;
             const oscFreq = 100;
+            const analyseTime = 1 / oscFreq;
 
             const buffer = await Tone.Offline(async () => {
                 if (!synthRef.current) return;
 
                 const synth = new Tone.Synth();
                 synth.oscillator.type = oscType;
+                synth.envelope.set({ attack: 0, decay: 0, sustain: 1, release: 0 });
                 synth.toDestination();
-                synth.triggerAttackRelease(oscFreq, 1 / oscFreq);
+                synth.triggerAttackRelease(oscFreq, analyseTime);
 
-            }, 1 / oscFreq);
+            }, analyseTime);
 
             return buffer;
         };
@@ -207,6 +210,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
 
     const playNote = async () => {
         if (!synthRef.current) return;
+        console.log(synthRef.current.context.isOffline);
         synthRef.current.triggerAttack(pitch);
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(pitch);
@@ -268,15 +272,15 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
         channelRef.current.volume.value = -12;
     }, [nodes]);
 
-    useEffect(() => {
-        if (!channelRef.current) return;
-        const minVolDb = -80;
-        const maxVolDb = 0;
+    // useEffect(() => {
+    //     if (!channelRef.current) return;
+    //     const minVolDb = -80;
+    //     const maxVolDb = 0;
 
-        const mappedVolume = mapValues(Math.log10(gain / 10), 0, 1, minVolDb, maxVolDb);
-        channelRef.current.volume.rampTo(mappedVolume, 0.05);
+    //     const mappedVolume = mapValues(Math.log10(gain / 10), 0, 1, minVolDb, maxVolDb);
+    //     channelRef.current.volume.rampTo(mappedVolume, 0.05);
 
-    }, [gain])
+    // }, [gain])
 
     // Handle Oscillator Type Change
     useEffect(() => {
@@ -288,8 +292,6 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
     useEffect(() => {
         Tone.Transport.bpm.rampTo(bpm, 0.1);
     }, [bpm]);
-
-    
 
     return (
 
@@ -310,15 +312,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
                 <div className="flex items-center gap-3">
                     < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
-                    <Knob
-                        label="Gain"
-                        setValue={setGain}
-                        setEnvelope={(env) => {
-                            if(!channelRef.current) return;
-                            env.connect(channelRef.current.volume);
-                        }}
-                    />
-
+                    <GainKnob audioNodeRef={channelRef} callback={(gain) => {channelRef.current?.volume.rampTo(gain, 0.05);}} />
                     <Knob
                         label="Pitch"
                         setValue={setPitch}
