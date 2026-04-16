@@ -10,7 +10,7 @@ import * as Tone from "tone";
 type KnobMode = "linear" | "exponential";
 
 interface knobProps {
-    setValue: Dispatch<SetStateAction<number>>
+    setValue: Dispatch<SetStateAction<number>> | ((value: number) => void),
     minValue?: number,
     maxValue?: number,
     label?: string,
