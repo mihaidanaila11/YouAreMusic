@@ -1,4 +1,4 @@
-import { RefObject, useRef, useState } from "react";
+import { RefObject, useCallback, useRef, useState } from "react";
 import Adsr from "./adsr";
 import * as Tone from "tone";
 import AdsrDragManager from "@/services/AdsrDragManager";
@@ -11,7 +11,7 @@ interface AdsrControllerProps {
 const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
     const [activeEnv, setActiveEnv] = useState<number>(0);
 
-    const synthSetParams = (attack: number, decay: number, sustain: number, release: number) => {
+    const synthSetParams = useCallback((attack: number, decay: number, sustain: number, release: number) => {
         if (!synthRef || !synthRef.current) return;
         synthRef.current.envelope.set({
             attack: attack,
@@ -19,7 +19,7 @@ const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
             sustain: sustain,
             release: release
         });
-    }
+    }, [synthRef]);
 
     const envs = [
         <div className={activeEnv === 0 ? "block" : "hidden"} key={0}>

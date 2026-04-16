@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import Adsr from "./adsr";
 import SynthController from "./synthController";
 import * as Tone from "tone";
@@ -10,17 +10,25 @@ import AdsrController from "./adsrController";
 import Arp from "./Arp/arp";
 import ScaleController from "./scale";
 
-const Synth = () => {
+interface SynthProps {
+    playNote?: boolean;
+}
+
+const Synth = ({ playNote}: SynthProps) => {
     const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(null);
     const filterRef = useRef<Tone.Filter | null>(null);
     const reverbRef = useRef<Tone.Reverb | null>(null);
+    const nodes = useMemo(() => {
+        return [filterRef, reverbRef]
+    }, [filterRef.current, reverbRef.current]);
     const adsrEnvelopes = useRef<Tone.Envelope[]>(Array.from({ length: 4 }, () => new Tone.Envelope()));
 
     return(
         <div className="m-w-full">
             <SynthController synthRef={synthRef} 
-            nodes={[filterRef, reverbRef]}
+            nodes={nodes}
             adsrEnvelopes={adsrEnvelopes}
+            playNoteState={playNote}
             />
             
             

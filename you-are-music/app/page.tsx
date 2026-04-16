@@ -1,6 +1,7 @@
 'use client';
 
 import ModelController from '@/components/model/ModelController';
+import GlobalSynthController from '@/components/synth/globalSynthController';
 import Sampler from '@/components/synth/Sampler/sampler';
 import Synth from '@/components/synth/synth';
 import { useState } from 'react';
@@ -36,9 +37,8 @@ export default function Test() {
                     
                     <ModelController />
 
-                    <div className="grid grid-cols-2 gap-10 m-6">
-                        <Synth />
-                        <Synth />
+                    <div >
+                        <GlobalSynthController />
                         <Sampler ctx={toneContext}/>
                     </div>
 

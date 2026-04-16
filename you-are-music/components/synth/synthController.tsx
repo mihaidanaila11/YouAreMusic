@@ -14,12 +14,13 @@ import GainKnob from "../UI Control/Control/Synth/gainKnob";
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
     nodes?: RefObject<Tone.ToneAudioNode | null>[],
-    adsrEnvelopes: RefObject<Tone.Envelope[]>
+    adsrEnvelopes: RefObject<Tone.Envelope[]>,
+    playNoteState?: boolean,
 }
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
 
-const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) => {
+const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
     const [pitch, setPitch] = useState<number>(20);
@@ -210,7 +211,6 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
 
     const playNote = async () => {
         if (!synthRef.current) return;
-        console.log(synthRef.current.context.isOffline);
         synthRef.current.triggerAttack(pitch);
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(pitch);
@@ -231,6 +231,14 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
             env.triggerRelease();
         });
     };
+
+    useEffect(() => {
+        if(playNoteState) {
+            playNote();
+        } else {
+            stopNote();
+        }
+    }, [playNoteState])
 
     useEffect(() => {
 
@@ -269,7 +277,8 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes }: ControllerProps) =>
 
         }
 
-        channelRef.current.volume.value = -12;
+        console.log("test")
+        // channelRef.current.volume.value = -12;
     }, [nodes]);
 
     // useEffect(() => {
