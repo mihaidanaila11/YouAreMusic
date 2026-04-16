@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import Synth from "./synth";
 import * as Tone from "tone";
 import Knob from "../UI Control/Control/knob";
+import ScaleController from "./scale";
+import Increment from "../UI Control/Control/increment";
+import PitchControll from "./pitchControll";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
@@ -10,7 +13,6 @@ interface GlobalSynthControllerProps {
 const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
     const synthRefs = useRef<Set<Tone.Synth>>(new Set());
     const [playNote, setPlayNote] = useState(false);
-    const pitchRef = useRef(60); // MIDI note number for middle C
     const pitchSignal = useRef(new Tone.Signal(Tone.Frequency("C4").toFrequency(), "frequency"));
 
     const [envelope, setEnvelope] = useState<Tone.ToneAudioNode | null>(null);
@@ -44,27 +46,8 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
 
             </div>
 
-            <Knob
-                        label="Pitch"
-                        setValue={(value: number) => {
-                            pitchSignal.current.rampTo(Tone.Frequency(value, "midi").toFrequency(), 0.05);
-                        }}
-                        minValue={21}
-                        maxValue={127}
-                        setEnvelope={(env) => {
-                            setEnvelope(env);
-                        }}
-                        step={1}
-                        // mapMiddleware={pitchMiddleware}
-                    />
-
-                    {/* {snapToScale && (
-                        <div>
-                            <ScaleController setNotes={setScaleNotes} />
-                            <Increment label="Snap Octave" setValue={setSnapOctave} minValue={-3} maxValue={3} defaultValue={0}/>
-                            <Increment label="Note Regions" setValue={setNoteRegions} minValue={1} maxValue={24} defaultValue={7}/>
-                        </div>
-                    )} */}
+            <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
+            
             < button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</button>
 
         </div>
