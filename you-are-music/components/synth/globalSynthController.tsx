@@ -5,6 +5,7 @@ import Knob from "../UI Control/Control/knob";
 import ScaleController from "./scale";
 import Increment from "../UI Control/Control/increment";
 import PitchControll from "./pitchControll";
+import ChordManager from "./chordManager";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
@@ -14,6 +15,7 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
     const synthRefs = useRef<Set<Tone.Synth>>(new Set());
     const [playNote, setPlayNote] = useState(false);
     const pitchSignal = useRef(new Tone.Signal(Tone.Frequency("C4").toFrequency(), "frequency"));
+    const [chordIntervals, setChordIntervals] = useState<number[]>([0]);
 
     const [envelope, setEnvelope] = useState<Tone.ToneAudioNode | null>(null);
 
@@ -39,15 +41,18 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
   
                     <Synth playNote={playNote}
                     ctx={ctx}
-                    pitchSignal={pitchSignal.current}/>
+                    pitchSignal={pitchSignal.current}
+                    chordIntervals={chordIntervals} />
                     <Synth playNote={playNote} 
                     ctx={ctx}
-                    pitchSignal={pitchSignal.current} />
+                    pitchSignal={pitchSignal.current}
+                    chordIntervals={chordIntervals} />
 
             </div>
 
             <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
-            
+            <ChordManager setIntervals={setChordIntervals} />
+
             < button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</button>
 
         </div>

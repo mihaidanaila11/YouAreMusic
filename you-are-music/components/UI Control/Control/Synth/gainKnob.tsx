@@ -7,6 +7,7 @@ import { Instrument } from "tone/build/esm/instrument/Instrument";
 interface GainKnobProps {
     callback: (gain: number) => void,
     audioNodeRef: React.RefObject<Instrument<any> | Tone.Channel | null>
+    
 }
 
 const GainKnob = ({ callback, audioNodeRef }: GainKnobProps) => {

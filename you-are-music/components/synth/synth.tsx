@@ -14,9 +14,10 @@ interface SynthProps {
     playNote?: boolean;
     pitchSignal: Tone.Signal<"frequency">;
     ctx: Tone.BaseContext;
+    chordIntervals: number[];
 }
 
-const Synth = ({ playNote, pitchSignal, ctx }: SynthProps) => {
+const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
     const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(new Tone.Synth({context: ctx}));
     const filterRef = useRef<Tone.Filter | null>(null);
     const reverbRef = useRef<Tone.Reverb | null>(null);
@@ -33,11 +34,13 @@ const Synth = ({ playNote, pitchSignal, ctx }: SynthProps) => {
     return(
         <div className="m-w-full">
             <SynthController synthRef={synthRef} 
+            pitchSignal={pitchSignal}
             nodes={[filterRef, reverbRef]}
             adsrEnvelopes={adsrEnvelopes}
             playNoteState={playNote}
             ctx={ctx}
             filtersLoaded={filterLoaded && reverbLoaded}
+            chordIntervals={chordIntervals}
             />
             
             

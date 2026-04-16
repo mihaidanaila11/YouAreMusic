@@ -13,20 +13,21 @@ import GainKnob from "../UI Control/Control/Synth/gainKnob";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
+    pitchSignal: Tone.Signal<"frequency">,
     nodes?: RefObject<Tone.ToneAudioNode | null>[],
     adsrEnvelopes: RefObject<Tone.Envelope[]>,
     playNoteState?: boolean,
     pitch?: number,
     ctx: Tone.BaseContext,
     filtersLoaded: boolean,
+    chordIntervals: number[]
 }
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
 
-const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded }: ControllerProps) => {
+const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals }: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
-    const [pitch, setPitch] = useState<number>(20);
     const [detune, setDetune] = useState<number>(0);
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
     const [semitone, setSemitone] = useState<number>(0);
@@ -35,12 +36,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
     const maxDetune = 100;
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
-
-    const [scaleNotes, setScaleNotes] = useState<number[]>([]);
-
-    const [snapToScale, setSnapToScale] = useState<boolean>(false);
-    const [noteRegions, setNoteRegions] = useState(7);
-    const [snapOctave, setSnapOctave] = useState<number>(4);
+    const chordVoices = useRef<Tone.Synth[]>([]);
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -132,23 +128,13 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
 
     // --------------------
 
-    const channelRef = useRef<Tone.Channel | null>(null);
-
-    useEffect(() => {
-        if (!synthRef.current) return;
-        const midiPitch = Tone.Frequency(pitch).toMidi();
-        const midiFrequency = Tone.Frequency(midiPitch, "midi").toFrequency();
-
-        if (!Number.isFinite(midiFrequency) || midiFrequency <= 0) return;
-
-        synthRef.current.frequency.setValueAtTime(midiFrequency, Tone.now());
-    }, [pitch]);
+    const channelRef = useRef<Tone.Channel | null>(new Tone.Channel({ context: ctx }));
 
     useEffect(() => {
         if (!synthRef.current) return;
         synthRef.current.detune.rampTo(detune + semitone * 100 + octave * 1200, 0.05);
 
-        console.log("Detune set to:", detune + semitone * 100 + octave * 1200);
+        // console.log("Detune set to:", detune + semitone * 100 + octave * 1200);
     }, [detune, semitone, octave]);
 
 
@@ -159,10 +145,10 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
         const currentUnison = unisonVoices.current.length;
 
         if (unison === 0) {
-            unisonVoices.current.forEach(_ => {
+            while (unisonVoices.current.length > 0) {
                 const synthToRemove = unisonVoices.current.pop();
                 synthToRemove?.dispose();
-            });
+            }
 
             return;
         }
@@ -171,51 +157,69 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
             const synthsNeeded = unison - currentUnison;
 
             for (let i = 0; i < synthsNeeded; i++) {
+                console.log("test ", channelRef.current);
                 const newSynth = new Tone.Synth({
                     ...(synthRef.current.get() as Tone.SynthOptions),
+                    volume: 0,
                     context: ctx
                 }).connect(channelRef.current);
                 unisonVoices.current.push(newSynth);
             }
         }
         else if (unison < currentUnison) {
-            const synthsToRemove = currentUnison - unison;
-
-            for (let i = 0; i < synthsToRemove; i++) {
+            while (unisonVoices.current.length > unison) {
                 const synthToRemove = unisonVoices.current.pop();
                 synthToRemove?.dispose();
             }
         }
 
         const detuneStep = currentUnison > 1 ? (detune * 2) / (currentUnison - 1) : 1;
+        console.log("Detune step:", detuneStep);
+
         unisonVoices.current.forEach((synth, index) => {
             const detuneValue = -detune + index * detuneStep;
             synth.detune.rampTo(detuneValue, 0.05);
+        
         });
 
 
-    }, [unison])
+    }, [unison, detune])
 
-    const pitchMiddleware = useCallback((value: number, min: number, max: number) => {
-        const valuePercent = (value - min) / (max - min);
-        if (snapToScale && scaleNotes.length > 0) {
-            // Implementation for pitch mapping within the scale
-            const snapedRegion = Math.floor(valuePercent * (noteRegions));
-            const octave = (snapOctave + 4) * 12  + Math.floor(snapedRegion / scaleNotes.length) * 12;
-            const note = scaleNotes[snapedRegion % scaleNotes.length] + octave;
-            console.log("Snapped Note:", note, snapOctave);
-            const freq = Tone.Frequency(note, "midi").toFrequency();
-            return freq;
+
+    useEffect(() => {
+        if(!synthRef.current) return;
+
+        if(chordIntervals.length > 1 && chordVoices.current.length < chordIntervals.length - 1){
+            const synthsNeeded = chordIntervals.length - 1 - chordVoices.current.length;
+            for (let i = 0; i < synthsNeeded; i++) {
+                const newSynth = new Tone.Synth({
+                    ...(synthRef.current.get() as Tone.SynthOptions),
+                    context: ctx
+                }).connect(channelRef.current!);
+                chordVoices.current.push(newSynth);
+            }
         }
-        return value;
-    }, [snapToScale, scaleNotes, snapOctave, noteRegions]);
+
+        if(chordIntervals.length <= 1 && chordVoices.current.length > 0){
+            chordVoices.current.forEach(synth => synth.dispose());
+            chordVoices.current = [];
+        }
+    }, [chordIntervals])
 
     const playNote = async () => {
         if (!synthRef.current) return;
-        console.log(pitch);
-        synthRef.current.triggerAttack(pitch);
+        const note = Tone.Frequency(pitchSignal.value);
+
+        synthRef.current.triggerAttack(note);
+
         unisonVoices.current.forEach((synth) => {
-            synth.triggerAttack(pitch);
+            synth.triggerAttack(note);
+        });
+
+        chordVoices.current.forEach((synth, index) => {
+            const interval = chordIntervals[index + 1];
+            const chordNote = note.transpose(interval);
+            synth.triggerAttack(chordNote);
         });
 
         adsrEnvelopes.current.forEach(env => {
@@ -229,13 +233,17 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
             synth.triggerRelease();
         });
 
+        chordVoices.current.forEach((synth) => {
+            synth.triggerRelease();
+        });
+
         adsrEnvelopes.current.forEach(env => {
             env.triggerRelease();
         });
     };
 
     useEffect(() => {
-        if(playNoteState) {
+        if (playNoteState) {
             playNote();
         } else {
             stopNote();
@@ -328,29 +336,12 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
                 <div className="flex items-center gap-3">
                     < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
-                    <GainKnob audioNodeRef={channelRef} callback={(gain) => {channelRef.current?.volume.rampTo(gain, 0.05);}} />
-                    <Knob
-                        label="Pitch"
-                        setValue={setPitch}
-                        minValue={20}
-                        maxValue={1000}
-                        setEnvelope={(env) => {
-                            if(!synthRef.current) return;
-                            env.connect(synthRef.current.frequency)
-                        }}
-                        mapMiddleware={pitchMiddleware}
-                    />
-
-                    {snapToScale && (
-                        <div>
-                            <ScaleController setNotes={setScaleNotes} />
-                            <Increment label="Snap Octave" setValue={setSnapOctave} minValue={-3} maxValue={3} defaultValue={0}/>
-                            <Increment label="Note Regions" setValue={setNoteRegions} minValue={1} maxValue={24} defaultValue={7}/>
-                        </div>
-                    )}
-                    <Toggle label="Snap to Scale" onToggle={(value) => {
-                        console.log("Snap to Scale:", value);
-                        setSnapToScale(value)}} />
+                    <GainKnob audioNodeRef={channelRef} callback={(gain) => {
+                        channelRef.current?.volume.rampTo(gain, 0.05);
+                        unisonVoices.current.forEach(synth => {
+                            synth.volume.rampTo(gain, 0.05);
+                        })
+                    }} />
 
                     <Knob
                         label="BPM"
@@ -369,7 +360,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
                         maxValue={100}
                         defaultValue={0}
                         setEnvelope={(env) => {
-                            if(!synthRef.current) return;
+                            if (!synthRef.current) return;
                             env.connect(synthRef.current.detune);
                         }}
                     />
@@ -382,7 +373,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, f
                         step={1}
                         sensitivity={8}
                         defaultValue={0}
-                        setEnvelope= { () => {} }
+                        setEnvelope={() => { }}
                     />
 
                 </div>
