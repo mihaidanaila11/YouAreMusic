@@ -16,11 +16,14 @@ interface ControllerProps {
     nodes?: RefObject<Tone.ToneAudioNode | null>[],
     adsrEnvelopes: RefObject<Tone.Envelope[]>,
     playNoteState?: boolean,
+    pitch?: number,
+    ctx: Tone.BaseContext,
+    filtersLoaded: boolean,
 }
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
 
-const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: ControllerProps) => {
+const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded }: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
     const [pitch, setPitch] = useState<number>(20);
@@ -30,11 +33,9 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
     const [octave, setOctave] = useState<number>(0);
     const [bpm, setBpm] = useState<number>(120);
     const maxDetune = 100;
-
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
 
-    const [ctx, setCtx] = useState<Tone.BaseContext | null>(null);
     const [scaleNotes, setScaleNotes] = useState<number[]>([]);
 
     const [snapToScale, setSnapToScale] = useState<boolean>(false);
@@ -172,7 +173,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
             for (let i = 0; i < synthsNeeded; i++) {
                 const newSynth = new Tone.Synth({
                     ...(synthRef.current.get() as Tone.SynthOptions),
-                    context: channelRef.current.context
+                    context: ctx
                 }).connect(channelRef.current);
                 unisonVoices.current.push(newSynth);
             }
@@ -211,6 +212,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
 
     const playNote = async () => {
         if (!synthRef.current) return;
+        console.log(pitch);
         synthRef.current.triggerAttack(pitch);
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(pitch);
@@ -243,12 +245,12 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
     useEffect(() => {
 
         if (!channelRef.current) {
-            channelRef.current = new Tone.Channel();
+            channelRef.current = new Tone.Channel({ context: ctx });
         }
 
         if (!synthRef.current) {
 
-            synthRef.current = new Tone.Synth({ context: channelRef.current.context });
+            synthRef.current = new Tone.Synth({ context: ctx });
             synthRef.current.oscillator.type = oscType;
         }
 
@@ -257,12 +259,17 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
 
         synthRef.current.connect(channelRef.current);
 
+        console.log(nodes
+            ?.map((node) => node.current));
+
         const validNodes = nodes
             ?.map((node) => node.current)
             .filter((node) => node !== null)
             .filter((node) => node.context === channelRef.current?.context) || [];
 
         if (validNodes.length > 0 && !!nodes) {
+            console.log("Connecting to nodes:", validNodes);
+            channelRef.current.disconnect();
             channelRef.current.connect(validNodes[0]);
 
             for (let i = 0; i < validNodes.length - 1; i++) {
@@ -274,12 +281,12 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
             validNodes[validNodes.length - 1].toDestination();
         }
         else {
-
+            console.log("No valid nodes to connect to, connecting directly to destination");
+            channelRef.current.disconnect();
+            channelRef.current.toDestination();
         }
-
-        console.log("test")
         // channelRef.current.volume.value = -12;
-    }, [nodes]);
+    }, [filtersLoaded, ctx]);
 
     // useEffect(() => {
     //     if (!channelRef.current) return;

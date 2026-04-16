@@ -15,7 +15,6 @@ const GainKnob = ({ callback, audioNodeRef }: GainKnobProps) => {
         const maxVolDb = 0;
 
         const mappedVolume = mapValues(Math.log10(value / 10), 0, 1, minVolDb, maxVolDb);
-        console.log("Mapped gain value (dB):", mappedVolume);
         callback(mappedVolume);
     }
 

@@ -5,9 +5,12 @@ import { Line } from "react-chartjs-2";
 import { Chart, ChartData, ChartOptions } from "chart.js";
 import { mapValues } from "@/utils/Math";
 import OptionPick from "../UI Control/Control/optionPick";
+import { on } from "events";
 
 interface FilterProps{
     filterRef: RefObject<Tone.Filter | null>,
+    onLoaded?: () => void,
+    ctx: Tone.BaseContext;
 };
 
 const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "peaking"] as BiquadFilterType[];
@@ -15,7 +18,7 @@ const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "pea
 const [minFreq, maxFreq] = [20, 20000];
 
 
-const FilterController = ( {filterRef}: FilterProps) => {
+const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
 
     const [frequency, setFreq] = useState<number>(1500);
 
@@ -25,7 +28,13 @@ const FilterController = ( {filterRef}: FilterProps) => {
 
     useEffect(() => {
         if(!filterRef.current){
-            filterRef.current = new Tone.Filter(1500, "lowpass");
+            filterRef.current = new Tone.Filter({
+                frequency: frequency,
+                type: filterType,
+                context: ctx
+            });
+
+            onLoaded?.();
         }
     }, [filterRef]);
 
