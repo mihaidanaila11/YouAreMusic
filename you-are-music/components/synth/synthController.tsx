@@ -25,6 +25,11 @@ interface ControllerProps {
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
 
+interface ChordVoice{
+    synth: Tone.Synth<Tone.SynthOptions>,
+    multiplier: Tone.Multiply
+}
+
 const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals }: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
@@ -36,7 +41,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     const maxDetune = 100;
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
-    const chordVoices = useRef<Tone.Synth[]>([]);
+    const chordVoices = useRef<ChordVoice[]>([]);
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -189,21 +194,30 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     useEffect(() => {
         if(!synthRef.current) return;
 
-        if(chordIntervals.length > 1 && chordVoices.current.length < chordIntervals.length - 1){
-            const synthsNeeded = chordIntervals.length - 1 - chordVoices.current.length;
-            for (let i = 0; i < synthsNeeded; i++) {
-                const newSynth = new Tone.Synth({
-                    ...(synthRef.current.get() as Tone.SynthOptions),
-                    context: ctx
-                }).connect(channelRef.current!);
-                chordVoices.current.push(newSynth);
-            }
-        }
+        chordVoices.current.forEach(chord => {
+            chord.synth.dispose();
+            chord.multiplier.dispose();
+        });
 
-        if(chordIntervals.length <= 1 && chordVoices.current.length > 0){
-            chordVoices.current.forEach(synth => synth.dispose());
-            chordVoices.current = [];
-        }
+        chordVoices.current = [];
+
+        chordIntervals.forEach((interval) => {
+            if(interval === 0 || !synthRef.current) return;
+
+            const newSynth = new Tone.Synth({
+                ...(synthRef.current.get() as Tone.SynthOptions),
+                context: ctx
+            }).connect(channelRef.current!);
+
+            const multiplier = new Tone.Multiply({
+                value: Math.pow(2, interval / 12),
+                context: ctx
+            });
+
+            pitchSignal.chain(multiplier, newSynth.frequency);
+
+            chordVoices.current.push({ synth: newSynth, multiplier });
+        });
     }, [chordIntervals])
 
     const playNote = async () => {
@@ -216,10 +230,10 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
             synth.triggerAttack(note);
         });
 
-        chordVoices.current.forEach((synth, index) => {
+        chordVoices.current.forEach((voice, index) => {
             const interval = chordIntervals[index + 1];
             const chordNote = note.transpose(interval);
-            synth.triggerAttack(chordNote);
+            voice.synth.triggerAttack(chordNote);
         });
 
         adsrEnvelopes.current.forEach(env => {
@@ -233,8 +247,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
             synth.triggerRelease();
         });
 
-        chordVoices.current.forEach((synth) => {
-            synth.triggerRelease();
+        chordVoices.current.forEach((voice) => {
+            voice.synth.triggerRelease();
         });
 
         adsrEnvelopes.current.forEach(env => {
@@ -310,12 +324,47 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     useEffect(() => {
         if (!synthRef.current) return;
         synthRef.current.oscillator.type = oscType;
+
+        chordVoices.current.forEach(voice => {
+            voice.synth.oscillator.type = oscType;
+        });
+
+        unisonVoices.current.forEach(synth => {
+            synth.oscillator.type = oscType;
+        });
     }, [oscType]);
 
     // Handle BPM change
     useEffect(() => {
         Tone.Transport.bpm.rampTo(bpm, 0.1);
     }, [bpm]);
+
+    // Handle keyboard play/stop
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.repeat) return;
+
+            if(e.key === " "){
+                e.preventDefault();
+                playNote();
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === " ") {
+                e.preventDefault();
+                stopNote();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    })
 
     return (
 
