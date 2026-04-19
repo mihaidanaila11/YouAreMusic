@@ -138,8 +138,6 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     useEffect(() => {
         if (!synthRef.current) return;
         synthRef.current.detune.rampTo(detune + semitone * 100 + octave * 1200, 0.05);
-
-        // console.log("Detune set to:", detune + semitone * 100 + octave * 1200);
     }, [detune, semitone, octave]);
 
 
@@ -162,28 +160,30 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
             const synthsNeeded = unison - currentUnison;
 
             for (let i = 0; i < synthsNeeded; i++) {
-                console.log("test ", channelRef.current);
                 const newSynth = new Tone.Synth({
                     ...(synthRef.current.get() as Tone.SynthOptions),
                     volume: 0,
                     context: ctx
                 }).connect(channelRef.current);
+
+                pitchSignal.connect(newSynth.frequency);
+
                 unisonVoices.current.push(newSynth);
             }
         }
         else if (unison < currentUnison) {
             while (unisonVoices.current.length > unison) {
                 const synthToRemove = unisonVoices.current.pop();
+                pitchSignal.disconnect(synthToRemove!.frequency);
                 synthToRemove?.dispose();
             }
         }
 
-        const detuneStep = currentUnison > 1 ? (detune * 2) / (currentUnison - 1) : 1;
-        console.log("Detune step:", detuneStep);
+        const detuneStep = currentUnison > 1 ? (detune * 2) / (currentUnison - 1) : 0;
 
         unisonVoices.current.forEach((synth, index) => {
             const detuneValue = -detune + index * detuneStep;
-            synth.detune.rampTo(detuneValue, 0.05);
+            synth.detune.rampTo(detuneValue + semitone * 100 + octave * 1200, 0.05);
         
         });
 
@@ -281,16 +281,12 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
         synthRef.current.connect(channelRef.current);
 
-        console.log(nodes
-            ?.map((node) => node.current));
-
         const validNodes = nodes
             ?.map((node) => node.current)
             .filter((node) => node !== null)
             .filter((node) => node.context === channelRef.current?.context) || [];
 
         if (validNodes.length > 0 && !!nodes) {
-            console.log("Connecting to nodes:", validNodes);
             channelRef.current.disconnect();
             channelRef.current.connect(validNodes[0]);
 
