@@ -6,6 +6,8 @@ import ScaleController from "./scale";
 import Increment from "../UI Control/Control/increment";
 import PitchControll from "./pitchControll";
 import ChordManager from "./chordManager";
+import lfoController from "./Lfo/lfoController";
+import LfoController from "./Lfo/lfoController";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
@@ -52,7 +54,7 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
 
             <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
             <ChordManager setIntervals={setChordIntervals} />
-
+            <LfoController ctx={ctx} />
             < button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</button>
 
         </div>

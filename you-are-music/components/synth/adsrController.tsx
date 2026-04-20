@@ -1,7 +1,7 @@
 import { RefObject, useCallback, useRef, useState } from "react";
 import Adsr from "./adsr";
 import * as Tone from "tone";
-import AdsrDragManager from "@/services/AdsrDragManager";
+import DragManager from "@/services/AdsrDragManager";
 
 interface AdsrControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>
@@ -46,11 +46,11 @@ const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
 
     const handleEnvDrag = (index: number) => {
         console.log("dragging env", index);
-        AdsrDragManager.setCurrentDragged(envelopes.current[index]);
+        DragManager.setCurrentEnv(envelopes.current[index]);
     }
 
     const handleEnvDrop = () => {
-        AdsrDragManager.dropCurrentDragged();
+        DragManager.dropCurrentEnv();
     }
     return(
         <div className="border-2 border-gray-300">

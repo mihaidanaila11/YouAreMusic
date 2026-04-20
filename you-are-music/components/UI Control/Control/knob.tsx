@@ -4,7 +4,7 @@ import KnobMenu from "./knobMenu";
 import MapControll from "@/components/hand/mapControll";
 import { Point } from "@/services/ControlManager";
 import Adsr from "@/components/synth/adsr";
-import AdsrDragManager from "@/services/AdsrDragManager";
+import DragManager from "@/services/AdsrDragManager";
 import * as Tone from "tone";
 
 type KnobMode = "linear" | "exponential";
@@ -239,20 +239,37 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         }
     }
 
-    
-    const handleEnvDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        if(!envelopeDestination ) return;
-        const draggedEnv = AdsrDragManager.getCurrentDragged();
-        if (!draggedEnv) return;
+    const handleEnvDrop = (envelope: Tone.Envelope| null) => {
+        if (!envelope) return;
 
         disconnectEnvelope(scaleRef.current);
 
-        draggedEnv.connect(scaleRef.current.set({ context: draggedEnv.context }));
-        lastEnvRef.current = draggedEnv;
-        console.log("dropped", draggedEnv);
+        envelope.connect(scaleRef.current.set({ context: envelope.context }));
+        lastEnvRef.current = envelope;
+        console.log("dropped", envelope);
         connectEnvelope(scaleRef.current);
-        setHasEnv(true);
+    }
+
+    
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        if(!envelopeDestination ) return;
+        const draggedEnv = DragManager.getCurrentEnv();
+        
+        if (draggedEnv) {
+            handleEnvDrop(draggedEnv);
+            setHasEnv(true);
+            return;
+        }
+
+        const draggedLfo = DragManager.getCurrentLfo();
+        if(draggedLfo){
+            draggedLfo.connect(scaleRef.current.set({ context: draggedLfo.context }));
+            scaleRef.current.connect(envelopeDestination);
+            console.log("Connected LFO to knob destination", draggedLfo, envelopeDestination);
+            setHasEnv(true);
+            return;
+        }
     }
 
     useEffect(() => {
@@ -267,7 +284,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
     // ------------
 
     return (
-        <div className="relative w-fit" onDrop={handleEnvDrop} onDragOver={(e) => e.preventDefault()}>
+        <div className="relative w-fit" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
             <div onContextMenu={rightClickHandler} className="w-fit flex flex-col items-center select-none">
                 <span className="text-sm">{label}</span>
 
