@@ -39,14 +39,21 @@ const PitchControll = ({ pitchSignal, setEnvelope }: PitchControllProps) => {
             <Knob
                 label="Pitch"
                 setValue={(value: number) => {
-                    pitchSignal.current.rampTo(Tone.Frequency(value, "midi").toFrequency(), 0.05);
+                    console.log("Setting pitch to MIDI note:", value);
+                    try {
+                        const freq = Tone.Frequency(value, "midi").toFrequency();
+                        pitchSignal.current?.setValueAtTime(freq, "+0");
+                    } catch (error) {
+                        console.error("Error setting pitch:", error);
+                        if (pitchSignal.current) {
+                            pitchSignal.current.value = Tone.Frequency(value, "midi").toFrequency();
+                        }
+                    }
                 }}
                 minValue={21}
                 maxValue={127}
-                setEnvelope={(env) => {
-                    setEnvelope(env);
-                }}
                 mapMiddleware={pitchMiddleware}
+                envelopeDestination={pitchSignal.current}
                 step={1}
             />
 

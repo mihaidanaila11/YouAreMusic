@@ -99,8 +99,16 @@ const SampleController = ({ ctx }: SampleControllerProps) => {
                             sensitivity={2}
                         />
                         <GainKnob audioNodeRef={samplerRef} callback={(gain) => {
-                            samplerRef.current?.volume.rampTo(gain, 0.05);
-                            console.log(samplerRef.current?.volume.value);
+                            try {
+                                samplerRef.current?.volume.setValueAtTime(gain, "+0");
+                                console.log(samplerRef.current?.volume.value);
+                            } catch (error) {
+                                console.error("Error setting sampler gain:", error);
+                                if (samplerRef.current?.volume.value !== undefined) {
+                                    samplerRef.current.volume.value = gain;
+                                }
+                                console.log(samplerRef.current?.volume.value);
+                            }
                         }} />
 
                         <Increment label="Octave" setValue={setOctave} minValue={-3} maxValue={3} defaultValue={0} />

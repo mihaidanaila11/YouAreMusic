@@ -23,10 +23,7 @@ const GainKnob = ({ callback, audioNodeRef }: GainKnobProps) => {
         <Knob
             label="Gain"
             setValue={handleGainChange}
-            setEnvelope={(env) => {
-                if (!audioNodeRef.current) return;
-                env.connect(audioNodeRef.current.volume);
-            }}
+            envelopeDestination={audioNodeRef.current?.volume}
         />
     )
 };

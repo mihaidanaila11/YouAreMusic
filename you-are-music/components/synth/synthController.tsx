@@ -137,7 +137,12 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
     useEffect(() => {
         if (!synthRef.current) return;
-        synthRef.current.detune.rampTo(detune + semitone * 100 + octave * 1200, 0.05);
+        try {
+            synthRef.current.detune.setValueAtTime(detune + semitone * 100 + octave * 1200, "+0");
+        } catch (error) {
+            console.error("Error setting synth detune:", error);
+            synthRef.current.detune.value = detune + semitone * 100 + octave * 1200;
+        }
     }, [detune, semitone, octave]);
 
 
@@ -183,8 +188,12 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
         unisonVoices.current.forEach((synth, index) => {
             const detuneValue = -detune + index * detuneStep;
-            synth.detune.rampTo(detuneValue + semitone * 100 + octave * 1200, 0.05);
-        
+            try {
+                synth.detune.setValueAtTime(detuneValue + semitone * 100 + octave * 1200, "+0");
+            } catch (error) {
+                console.error("Error setting unison detune:", error);
+                synth.detune.value = detuneValue + semitone * 100 + octave * 1200;
+            }
         });
 
 
@@ -382,10 +391,18 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                     < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
                     <GainKnob audioNodeRef={channelRef} callback={(gain) => {
-                        channelRef.current?.volume.rampTo(gain, 0.05);
-                        unisonVoices.current.forEach(synth => {
-                            synth.volume.rampTo(gain, 0.05);
-                        })
+                        try {
+                            channelRef.current?.volume.setValueAtTime(gain, "+0");
+                            unisonVoices.current.forEach(synth => {
+                                synth.volume.setValueAtTime(gain, "+0");
+                            })
+                        } catch (error) {
+                            console.error("Error setting gain:", error);
+                            channelRef.current?.volume.value !== undefined && (channelRef.current.volume.value = gain);
+                            unisonVoices.current.forEach(synth => {
+                                if (synth.volume.value !== undefined) synth.volume.value = gain;
+                            })
+                        }
                     }} />
 
                     <Knob
@@ -404,10 +421,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                         minValue={0}
                         maxValue={100}
                         defaultValue={0}
-                        setEnvelope={(env) => {
-                            if (!synthRef.current) return;
-                            env.connect(synthRef.current.detune);
-                        }}
+                        envelopeDestination={synthRef.current?.detune}
                     />
 
                     <Knob
@@ -418,7 +432,6 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                         step={1}
                         sensitivity={8}
                         defaultValue={0}
-                        setEnvelope={() => { }}
                     />
 
                 </div>

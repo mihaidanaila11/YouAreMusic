@@ -18,11 +18,12 @@ interface knobProps {
     mode?: KnobMode,
     step?: number,
     sensitivity?: number,
-    setEnvelope?: (env: Tone.Scale) => void,
+    envelopeDestination?: Tone.Signal<any> | Tone.Param<any>,
     mapMiddleware?: (value: number, min: number, max: number) => number
+
 }
 
-const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, setEnvelope, mapMiddleware }: knobProps) => {
+const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, mapMiddleware, envelopeDestination }: knobProps) => {
 
     useEffect(() => {
         if (defaultValue) {
@@ -222,14 +223,35 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
     // Handle envelope drag and drop
     const scaleRef = useRef(new Tone.Scale(minEnvelopeValue, maxEnvelopeValue));
+
+    const connectEnvelope = (env: Tone.Scale) => {
+        if (!envelopeDestination) return;
+        env.connect(envelopeDestination);
+    }
+
+    const lastEnvRef = useRef<Tone.Envelope | null>(null);
+    const disconnectEnvelope = (scale: Tone.Scale) => {
+        if (!envelopeDestination) return;
+        scale.disconnect(envelopeDestination);
+
+        if(lastEnvRef.current){
+            lastEnvRef.current.disconnect(scale);
+        }
+    }
+
+    
     const handleEnvDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
+        if(!envelopeDestination ) return;
         const draggedEnv = AdsrDragManager.getCurrentDragged();
         if (!draggedEnv) return;
 
+        disconnectEnvelope(scaleRef.current);
+
         draggedEnv.connect(scaleRef.current.set({ context: draggedEnv.context }));
+        lastEnvRef.current = draggedEnv;
         console.log("dropped", draggedEnv);
-        setEnvelope?.(scaleRef.current);
+        connectEnvelope(scaleRef.current);
         setHasEnv(true);
     }
 

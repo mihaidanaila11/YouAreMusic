@@ -5,7 +5,6 @@ import { Line } from "react-chartjs-2";
 import { Chart, ChartData, ChartOptions } from "chart.js";
 import { mapValues } from "@/utils/Math";
 import OptionPick from "../UI Control/Control/optionPick";
-import { on } from "events";
 
 interface FilterProps{
     filterRef: RefObject<Tone.Filter | null>,
@@ -41,7 +40,15 @@ const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
     useEffect(() => {
         if(!filterRef.current) return;
 
-        filterRef.current.frequency.rampTo(frequency, 0.05);
+        const clampedFreq = Math.max(minFreq, Math.min(frequency, maxFreq));
+
+        try {
+            filterRef.current.frequency.setValueAtTime(clampedFreq, "+0");
+        } catch (error) {
+            console.error("Error setting filter frequency:", error);
+            // Fallback to direct assignment if rampTo fails
+            filterRef.current.frequency.value = clampedFreq;
+        }
 
     }, [frequency]);
 
@@ -170,6 +177,7 @@ const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
         maxValue={20000}
         mode="exponential"
         sensitivity={0.4}
+        envelopeDestination={filterRef.current?.frequency}
         />
 
         
