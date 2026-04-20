@@ -52,8 +52,6 @@ const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
     const handleEnvDrop = () => {
         AdsrDragManager.dropCurrentDragged();
     }
-
-    console.log("Active envelope index:", activeEnv);
     return(
         <div className="border-2 border-gray-300">
             <div className="w-1/2 flex justify-between">

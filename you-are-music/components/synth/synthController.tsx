@@ -13,33 +13,35 @@ import GainKnob from "../UI Control/Control/Synth/gainKnob";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
+    pitchSignal: Tone.Signal<"frequency">,
     nodes?: RefObject<Tone.ToneAudioNode | null>[],
     adsrEnvelopes: RefObject<Tone.Envelope[]>,
     playNoteState?: boolean,
+    pitch?: number,
+    ctx: Tone.BaseContext,
+    filtersLoaded: boolean,
+    chordIntervals: number[]
 }
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
 
-const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: ControllerProps) => {
+interface ChordVoice{
+    synth: Tone.Synth<Tone.SynthOptions>,
+    multiplier: Tone.Multiply
+}
+
+const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals }: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
-    const [pitch, setPitch] = useState<number>(20);
     const [detune, setDetune] = useState<number>(0);
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
     const [semitone, setSemitone] = useState<number>(0);
     const [octave, setOctave] = useState<number>(0);
     const [bpm, setBpm] = useState<number>(120);
     const maxDetune = 100;
-
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
-
-    const [ctx, setCtx] = useState<Tone.BaseContext | null>(null);
-    const [scaleNotes, setScaleNotes] = useState<number[]>([]);
-
-    const [snapToScale, setSnapToScale] = useState<boolean>(false);
-    const [noteRegions, setNoteRegions] = useState(7);
-    const [snapOctave, setSnapOctave] = useState<number>(4);
+    const chordVoices = useRef<ChordVoice[]>([]);
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -131,23 +133,16 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
 
     // --------------------
 
-    const channelRef = useRef<Tone.Channel | null>(null);
+    const channelRef = useRef<Tone.Channel | null>(new Tone.Channel({ context: ctx }));
 
     useEffect(() => {
         if (!synthRef.current) return;
-        const midiPitch = Tone.Frequency(pitch).toMidi();
-        const midiFrequency = Tone.Frequency(midiPitch, "midi").toFrequency();
-
-        if (!Number.isFinite(midiFrequency) || midiFrequency <= 0) return;
-
-        synthRef.current.frequency.setValueAtTime(midiFrequency, Tone.now());
-    }, [pitch]);
-
-    useEffect(() => {
-        if (!synthRef.current) return;
-        synthRef.current.detune.rampTo(detune + semitone * 100 + octave * 1200, 0.05);
-
-        console.log("Detune set to:", detune + semitone * 100 + octave * 1200);
+        try {
+            synthRef.current.detune.setValueAtTime(detune + semitone * 100 + octave * 1200, "+0");
+        } catch (error) {
+            console.error("Error setting synth detune:", error);
+            synthRef.current.detune.value = detune + semitone * 100 + octave * 1200;
+        }
     }, [detune, semitone, octave]);
 
 
@@ -158,10 +153,10 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
         const currentUnison = unisonVoices.current.length;
 
         if (unison === 0) {
-            unisonVoices.current.forEach(_ => {
+            while (unisonVoices.current.length > 0) {
                 const synthToRemove = unisonVoices.current.pop();
                 synthToRemove?.dispose();
-            });
+            }
 
             return;
         }
@@ -172,48 +167,82 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
             for (let i = 0; i < synthsNeeded; i++) {
                 const newSynth = new Tone.Synth({
                     ...(synthRef.current.get() as Tone.SynthOptions),
-                    context: channelRef.current.context
+                    volume: 0,
+                    context: ctx
                 }).connect(channelRef.current);
+
+                pitchSignal.connect(newSynth.frequency);
+
                 unisonVoices.current.push(newSynth);
             }
         }
         else if (unison < currentUnison) {
-            const synthsToRemove = currentUnison - unison;
-
-            for (let i = 0; i < synthsToRemove; i++) {
+            while (unisonVoices.current.length > unison) {
                 const synthToRemove = unisonVoices.current.pop();
+                pitchSignal.disconnect(synthToRemove!.frequency);
                 synthToRemove?.dispose();
             }
         }
 
-        const detuneStep = currentUnison > 1 ? (detune * 2) / (currentUnison - 1) : 1;
+        const detuneStep = currentUnison > 1 ? (detune * 2) / (currentUnison - 1) : 0;
+
         unisonVoices.current.forEach((synth, index) => {
             const detuneValue = -detune + index * detuneStep;
-            synth.detune.rampTo(detuneValue, 0.05);
+            try {
+                synth.detune.setValueAtTime(detuneValue + semitone * 100 + octave * 1200, "+0");
+            } catch (error) {
+                console.error("Error setting unison detune:", error);
+                synth.detune.value = detuneValue + semitone * 100 + octave * 1200;
+            }
         });
 
 
-    }, [unison])
+    }, [unison, detune])
 
-    const pitchMiddleware = useCallback((value: number, min: number, max: number) => {
-        const valuePercent = (value - min) / (max - min);
-        if (snapToScale && scaleNotes.length > 0) {
-            // Implementation for pitch mapping within the scale
-            const snapedRegion = Math.floor(valuePercent * (noteRegions));
-            const octave = (snapOctave + 4) * 12  + Math.floor(snapedRegion / scaleNotes.length) * 12;
-            const note = scaleNotes[snapedRegion % scaleNotes.length] + octave;
-            console.log("Snapped Note:", note, snapOctave);
-            const freq = Tone.Frequency(note, "midi").toFrequency();
-            return freq;
-        }
-        return value;
-    }, [snapToScale, scaleNotes, snapOctave, noteRegions]);
+
+    useEffect(() => {
+        if(!synthRef.current) return;
+
+        chordVoices.current.forEach(chord => {
+            chord.synth.dispose();
+            chord.multiplier.dispose();
+        });
+
+        chordVoices.current = [];
+
+        chordIntervals.forEach((interval) => {
+            if(interval === 0 || !synthRef.current) return;
+
+            const newSynth = new Tone.Synth({
+                ...(synthRef.current.get() as Tone.SynthOptions),
+                context: ctx
+            }).connect(channelRef.current!);
+
+            const multiplier = new Tone.Multiply({
+                value: Math.pow(2, interval / 12),
+                context: ctx
+            });
+
+            pitchSignal.chain(multiplier, newSynth.frequency);
+
+            chordVoices.current.push({ synth: newSynth, multiplier });
+        });
+    }, [chordIntervals])
 
     const playNote = async () => {
         if (!synthRef.current) return;
-        synthRef.current.triggerAttack(pitch);
+        const note = Tone.Frequency(pitchSignal.value);
+
+        synthRef.current.triggerAttack(note);
+
         unisonVoices.current.forEach((synth) => {
-            synth.triggerAttack(pitch);
+            synth.triggerAttack(note);
+        });
+
+        chordVoices.current.forEach((voice, index) => {
+            const interval = chordIntervals[index + 1];
+            const chordNote = note.transpose(interval);
+            voice.synth.triggerAttack(chordNote);
         });
 
         adsrEnvelopes.current.forEach(env => {
@@ -227,13 +256,17 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
             synth.triggerRelease();
         });
 
+        chordVoices.current.forEach((voice) => {
+            voice.synth.triggerRelease();
+        });
+
         adsrEnvelopes.current.forEach(env => {
             env.triggerRelease();
         });
     };
 
     useEffect(() => {
-        if(playNoteState) {
+        if (playNoteState) {
             playNote();
         } else {
             stopNote();
@@ -243,12 +276,12 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
     useEffect(() => {
 
         if (!channelRef.current) {
-            channelRef.current = new Tone.Channel();
+            channelRef.current = new Tone.Channel({ context: ctx });
         }
 
         if (!synthRef.current) {
 
-            synthRef.current = new Tone.Synth({ context: channelRef.current.context });
+            synthRef.current = new Tone.Synth({ context: ctx });
             synthRef.current.oscillator.type = oscType;
         }
 
@@ -263,6 +296,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
             .filter((node) => node.context === channelRef.current?.context) || [];
 
         if (validNodes.length > 0 && !!nodes) {
+            channelRef.current.disconnect();
             channelRef.current.connect(validNodes[0]);
 
             for (let i = 0; i < validNodes.length - 1; i++) {
@@ -274,12 +308,12 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
             validNodes[validNodes.length - 1].toDestination();
         }
         else {
-
+            console.log("No valid nodes to connect to, connecting directly to destination");
+            channelRef.current.disconnect();
+            channelRef.current.toDestination();
         }
-
-        console.log("test")
         // channelRef.current.volume.value = -12;
-    }, [nodes]);
+    }, [filtersLoaded, ctx]);
 
     // useEffect(() => {
     //     if (!channelRef.current) return;
@@ -295,12 +329,47 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
     useEffect(() => {
         if (!synthRef.current) return;
         synthRef.current.oscillator.type = oscType;
+
+        chordVoices.current.forEach(voice => {
+            voice.synth.oscillator.type = oscType;
+        });
+
+        unisonVoices.current.forEach(synth => {
+            synth.oscillator.type = oscType;
+        });
     }, [oscType]);
 
     // Handle BPM change
     useEffect(() => {
         Tone.Transport.bpm.rampTo(bpm, 0.1);
     }, [bpm]);
+
+    // Handle keyboard play/stop
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.repeat) return;
+
+            if(e.key === " "){
+                e.preventDefault();
+                playNote();
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.key === " ") {
+                e.preventDefault();
+                stopNote();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    })
 
     return (
 
@@ -321,29 +390,20 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
                 <div className="flex items-center gap-3">
                     < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
 
-                    <GainKnob audioNodeRef={channelRef} callback={(gain) => {channelRef.current?.volume.rampTo(gain, 0.05);}} />
-                    <Knob
-                        label="Pitch"
-                        setValue={setPitch}
-                        minValue={20}
-                        maxValue={1000}
-                        setEnvelope={(env) => {
-                            if(!synthRef.current) return;
-                            env.connect(synthRef.current.frequency)
-                        }}
-                        mapMiddleware={pitchMiddleware}
-                    />
-
-                    {snapToScale && (
-                        <div>
-                            <ScaleController setNotes={setScaleNotes} />
-                            <Increment label="Snap Octave" setValue={setSnapOctave} minValue={-3} maxValue={3} defaultValue={0}/>
-                            <Increment label="Note Regions" setValue={setNoteRegions} minValue={1} maxValue={24} defaultValue={7}/>
-                        </div>
-                    )}
-                    <Toggle label="Snap to Scale" onToggle={(value) => {
-                        console.log("Snap to Scale:", value);
-                        setSnapToScale(value)}} />
+                    <GainKnob audioNodeRef={channelRef} callback={(gain) => {
+                        try {
+                            channelRef.current?.volume.setValueAtTime(gain, "+0");
+                            unisonVoices.current.forEach(synth => {
+                                synth.volume.setValueAtTime(gain, "+0");
+                            })
+                        } catch (error) {
+                            console.error("Error setting gain:", error);
+                            channelRef.current?.volume.value !== undefined && (channelRef.current.volume.value = gain);
+                            unisonVoices.current.forEach(synth => {
+                                if (synth.volume.value !== undefined) synth.volume.value = gain;
+                            })
+                        }
+                    }} />
 
                     <Knob
                         label="BPM"
@@ -361,10 +421,7 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
                         minValue={0}
                         maxValue={100}
                         defaultValue={0}
-                        setEnvelope={(env) => {
-                            if(!synthRef.current) return;
-                            env.connect(synthRef.current.detune);
-                        }}
+                        envelopeDestination={synthRef.current?.detune}
                     />
 
                     <Knob
@@ -375,7 +432,6 @@ const SynthController = ({ synthRef, nodes, adsrEnvelopes, playNoteState}: Contr
                         step={1}
                         sensitivity={8}
                         defaultValue={0}
-                        setEnvelope= { () => {} }
                     />
 
                 </div>

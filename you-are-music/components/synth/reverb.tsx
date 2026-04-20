@@ -3,10 +3,12 @@ import Knob from "../UI Control/Control/knob";
 import * as Tone from "tone";
 
 interface ReverbControllerProps {
-    reverbRef: RefObject<Tone.Reverb | null>
+    reverbRef: RefObject<Tone.Reverb | null>,
+    onLoaded?: () => void;
+    ctx: Tone.BaseContext;
 }
 
-const ReverbController = ({ reverbRef }: ReverbControllerProps) => {
+const ReverbController = ({ reverbRef, onLoaded, ctx }: ReverbControllerProps) => {
 
     const [wet, setWet] = useState(1);
     const [decay, setDecay] = useState(1.5);
@@ -18,11 +20,13 @@ const ReverbController = ({ reverbRef }: ReverbControllerProps) => {
                 reverbRef.current = new Tone.Reverb({
                     decay: decay,
                     preDelay: preDelay,
-                    wet: wet
+                    wet: wet,
+                    context: ctx
                 });
             }
 
             await reverbRef.current.generate();
+            onLoaded?.();
         };
 
         initReverb();

@@ -8,6 +8,8 @@ import OptionPick from "../UI Control/Control/optionPick";
 
 interface FilterProps{
     filterRef: RefObject<Tone.Filter | null>,
+    onLoaded?: () => void,
+    ctx: Tone.BaseContext;
 };
 
 const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "peaking"] as BiquadFilterType[];
@@ -15,7 +17,7 @@ const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "pea
 const [minFreq, maxFreq] = [20, 20000];
 
 
-const FilterController = ( {filterRef}: FilterProps) => {
+const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
 
     const [frequency, setFreq] = useState<number>(1500);
 
@@ -25,14 +27,28 @@ const FilterController = ( {filterRef}: FilterProps) => {
 
     useEffect(() => {
         if(!filterRef.current){
-            filterRef.current = new Tone.Filter(1500, "lowpass");
+            filterRef.current = new Tone.Filter({
+                frequency: frequency,
+                type: filterType,
+                context: ctx
+            });
+
+            onLoaded?.();
         }
     }, [filterRef]);
 
     useEffect(() => {
         if(!filterRef.current) return;
 
-        filterRef.current.frequency.rampTo(frequency, 0.05);
+        const clampedFreq = Math.max(minFreq, Math.min(frequency, maxFreq));
+
+        try {
+            filterRef.current.frequency.setValueAtTime(clampedFreq, "+0");
+        } catch (error) {
+            console.error("Error setting filter frequency:", error);
+            // Fallback to direct assignment if rampTo fails
+            filterRef.current.frequency.value = clampedFreq;
+        }
 
     }, [frequency]);
 
@@ -161,6 +177,7 @@ const FilterController = ( {filterRef}: FilterProps) => {
         maxValue={20000}
         mode="exponential"
         sensitivity={0.4}
+        envelopeDestination={filterRef.current?.frequency}
         />
 
         

@@ -38,7 +38,7 @@ export default function Test() {
                     <ModelController />
 
                     <div >
-                        <GlobalSynthController />
+                        <GlobalSynthController ctx={toneContext}/>
                         <Sampler ctx={toneContext}/>
                     </div>
 

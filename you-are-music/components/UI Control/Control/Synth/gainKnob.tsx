@@ -7,6 +7,7 @@ import { Instrument } from "tone/build/esm/instrument/Instrument";
 interface GainKnobProps {
     callback: (gain: number) => void,
     audioNodeRef: React.RefObject<Instrument<any> | Tone.Channel | null>
+    
 }
 
 const GainKnob = ({ callback, audioNodeRef }: GainKnobProps) => {
@@ -15,7 +16,6 @@ const GainKnob = ({ callback, audioNodeRef }: GainKnobProps) => {
         const maxVolDb = 0;
 
         const mappedVolume = mapValues(Math.log10(value / 10), 0, 1, minVolDb, maxVolDb);
-        console.log("Mapped gain value (dB):", mappedVolume);
         callback(mappedVolume);
     }
 
@@ -23,10 +23,7 @@ const GainKnob = ({ callback, audioNodeRef }: GainKnobProps) => {
         <Knob
             label="Gain"
             setValue={handleGainChange}
-            setEnvelope={(env) => {
-                if (!audioNodeRef.current) return;
-                env.connect(audioNodeRef.current.volume);
-            }}
+            envelopeDestination={audioNodeRef.current?.volume}
         />
     )
 };
