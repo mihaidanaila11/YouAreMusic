@@ -4,6 +4,7 @@ import ModelController from '@/components/model/ModelController';
 import GlobalSynthController from '@/components/synth/globalSynthController';
 import Sampler from '@/components/synth/Sampler/sampler';
 import Synth from '@/components/synth/synth';
+import usePresetStore from '@/services/presetStore';
 import { useState } from 'react';
 import * as Tone from "tone";
 

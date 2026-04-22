@@ -10,6 +10,8 @@ import Increment from "../UI Control/Control/increment";
 import ScaleController from "./scale";
 import Toggle from "../UI Control/Control/toggle";
 import GainKnob from "../UI Control/Control/Synth/gainKnob";
+import usePresetStore from "@/services/presetStore";
+import { useCurrentSynth } from "@/app/hooks/presetSync";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -20,7 +22,7 @@ interface ControllerProps {
     pitch?: number,
     ctx: Tone.BaseContext,
     filtersLoaded: boolean,
-    chordIntervals: number[]
+    chordIntervals: number[],
 }
 
 const OscTypes = ["sine", "square", "triangle", "sawtooth"] as OmniOscillatorType[];
@@ -30,7 +32,16 @@ interface ChordVoice{
     multiplier: Tone.Multiply
 }
 
-const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals }: ControllerProps) => {
+export interface SynthControllerState{
+    detune: number;
+    oscType: OmniOscillatorType;
+    semitone: number;
+    octave: number;
+    bpm: number;
+    unison: number;
+}
+
+const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals}: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
     const [detune, setDetune] = useState<number>(0);
@@ -42,6 +53,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
     const chordVoices = useRef<ChordVoice[]>([]);
+
+    const { state, setSynthState } = useCurrentSynth()
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -147,6 +160,10 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
 
     // Handle detune
+
+    const presetStore = usePresetStore();
+    
+
     useEffect(() => {
         if (!synthRef.current || !channelRef.current) return;
 
@@ -371,6 +388,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
         };
     })
 
+    const handleSavePreset = (value: number, path: keyof SynthControllerState) => setSynthState({ [path]: value })
+
     return (
 
         <div className="select-none border-2 border-gray-300">
@@ -421,7 +440,9 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                         minValue={0}
                         maxValue={100}
                         defaultValue={0}
+                        value={state.detune}
                         envelopeDestination={synthRef.current?.detune}
+                        updatePreset={(value) => handleSavePreset(value, "detune")}
                     />
 
                     <Knob
@@ -432,6 +453,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                         step={1}
                         sensitivity={8}
                         defaultValue={0}
+                        value={state.unison}
+                        updatePreset={(value) => handleSavePreset(value, "unison")}
                     />
 
                 </div>

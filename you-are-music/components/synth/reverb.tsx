@@ -6,7 +6,13 @@ interface ReverbControllerProps {
     reverbRef: RefObject<Tone.Reverb | null>,
     onLoaded?: () => void;
     ctx: Tone.BaseContext;
-}
+};
+
+export interface ReverbState {
+    wet: number;
+    decay: number;
+    preDelay: number;
+};
 
 const ReverbController = ({ reverbRef, onLoaded, ctx }: ReverbControllerProps) => {
 

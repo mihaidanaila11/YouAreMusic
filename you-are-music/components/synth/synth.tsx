@@ -1,20 +1,28 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Adsr from "./adsr";
-import SynthController from "./synthController";
+import Adsr, { AdsrState } from "./adsr";
+import SynthController, { SynthControllerState } from "./synthController";
 import * as Tone from "tone";
-import FilterController from "./filter";
-import ReverbController from "./reverb";
+import FilterController, { FilterState } from "./filter";
+import ReverbController, { ReverbState } from "./reverb";
 import AdsrController from "./adsrController";
 import Arp from "./Arp/arp";
 import ScaleController from "./scale";
+import usePresetStore from "@/services/presetStore";
 
 interface SynthProps {
     playNote?: boolean;
     pitchSignal: Tone.Signal<"frequency">;
     ctx: Tone.BaseContext;
     chordIntervals: number[];
+}
+
+interface SynthState {
+    synthState: SynthControllerState;
+    adsrState: AdsrState;
+    filterState: FilterState;
+    reverbState: ReverbState;
 }
 
 const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {

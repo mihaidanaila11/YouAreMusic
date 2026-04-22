@@ -8,6 +8,13 @@ interface LfoControllerProps {
     ctx: Tone.BaseContext;
 }
 
+export interface LfoState {
+    frequency: number;
+    min: number;
+    max: number;
+    type: Tone.ToneOscillatorType;
+}
+
 const LfoController = ({ lfosNumber = 3, ctx }: LfoControllerProps) => {
     const [currentLfo, setCurrentLfo] = useState(0);
 
