@@ -7,6 +7,7 @@ import Adsr from "@/components/synth/adsr";
 import DragManager from "@/services/AdsrDragManager";
 import * as Tone from "tone";
 import usePresetStore from "@/services/presetStore";
+import colors from "@/app/colors";
 
 type KnobMode = "linear" | "exponential";
 
@@ -319,14 +320,14 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
                             <div className="aspect-square w-full relative">
 
                                 <svg width={"100%"} height={"100%"} className="absolute z-10 rotate-135">
-                                    <circle r={"45%"} stroke="orange" strokeWidth={3}
+                                    <circle r={"45%"} stroke={colors.darkCyan} strokeWidth={3}
                                         fill="none"
                                         cx={"50%"} cy={"50%"}
                                         ref={backValueCircleRef} />
                                 </svg>
 
                                 <svg width={"100%"} height={"100%"} className="absolute z-20 rotate-135">
-                                    <circle r={"45%"} stroke="red" strokeWidth={1}
+                                    <circle r={"45%"} stroke={colors.lightPurple} strokeWidth={2}
                                         fill="none"
                                         cx={"50%"} cy={"50%"}
                                         ref={valueCircleRef} />
@@ -335,11 +336,11 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
 
 
-                            <div className="w-70/100 aspect-square bg-amber-500 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                            <div className="w-70/100 aspect-square bg-white border border-black rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                                 style={{
                                     transform: `rotate(${currentRotation}deg)`
                                 }} >
-                                <div className="bg-red-500 w-1/12 h-1/3 rounded-full absolute top-0 left-1/2 -translate-x-1/2" />
+                                <div className="bg-theme-cyan w-1/7 aspect-square rounded-full absolute top-1 left-1/2 -translate-x-1/2" />
                             </div>
                         </div>
                     </div>

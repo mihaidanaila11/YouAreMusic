@@ -12,6 +12,7 @@ import Toggle from "../UI Control/Control/toggle";
 import GainKnob from "../UI Control/Control/Synth/gainKnob";
 import usePresetStore from "@/services/presetStore";
 import { useCurrentSynth } from "@/app/hooks/presetSync";
+import colors from "@/app/colors";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -92,7 +93,11 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
         return {
             labels: Array.from({ length: waveform.length }, (_, i) => i),
             datasets: [{
-                data: Array.from(waveform)
+                data: Array.from(waveform),
+                borderColor: colors.purple,
+                backgroundColor: colors.purple,
+                borderWidth: 1.5,
+                fill: false,
             }]
         }
     }, [waveform]);
@@ -104,7 +109,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
         elements: {
             point: {
                 radius: 0,
-            }
+            },
         },
         plugins: {
 
