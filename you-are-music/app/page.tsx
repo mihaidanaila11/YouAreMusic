@@ -1,50 +1,54 @@
-'use client';
+'use client'
 
-import ModelController from '@/components/model/ModelController';
-import GlobalSynthController from '@/components/synth/globalSynthController';
-import Sampler from '@/components/synth/Sampler/sampler';
-import Synth from '@/components/synth/synth';
-import { useState } from 'react';
-import * as Tone from "tone";
+import { useEffect, useRef, useState } from "react";
 
+const words = ["love", "happiness", "sadness", "anger", "fear", "surprise", "disgust", "trust", "anticipation", "joy"];
 
-export default function Test() {
-    const [toneContext, setToneContext] = useState<Tone.BaseContext | null>(null);
+const LandingPage = () => {
 
-    const handleStartAudio = async () => {
-        ("Starting audio");
-        Tone.start().then(() => {
-            console.log("Audio started");
-            setToneContext(Tone.getContext());
-        });
+    const [currentWordIndex, setIndex] = useState(0);
+    const [pauseWords, setPauseWords] = useState(true);
+
+    useEffect(() => {
+    let timer;
+
+    if (!pauseWords) {
+        timer = setInterval(() => {
+            setIndex((prevIndex) => (prevIndex + 1) % words.length);
+        }, 30);
+
+        setTimeout(() => setPauseWords(true), 2000);
+    } else {
+        timer = setTimeout(() => {
+            setPauseWords(false);
+        }, 4000);
     }
 
+    return () => {
+        clearInterval(timer);
+        clearTimeout(timer);
+    };
+}, [pauseWords, words.length]);
+    
+
     return (
-        <>
-            {
-                (!toneContext || toneContext.state === "suspended") && (
-                    <div>
-                        <p className='text-center'>Click to start the music</p>
-                        <button onClick={handleStartAudio} className='cursor-pointer'>Start Audio</button>
-                    </div>
-                )
-            }
+        <div className="bg-[url(/LandingBG.jpg)] bg-cover w-screen h-screen ">
+            <div className="h-full w-130 flex flex-col gap-30 justify-center ml-20">
+                <div>
+                    <h1 className="elms-sans font-thin text-8xl ">You are<br />
+                        <span className="cinzel-decorative font-bold">{pauseWords ? "music" : words[currentWordIndex]}</span>
+                    </h1>
 
-            {toneContext && toneContext.state === "running" && (
-
-
-                <div className='mx-2 '>
-                    
-                    <ModelController />
-
-                    <div >
-                        <GlobalSynthController ctx={toneContext}/>
-                        <Sampler ctx={toneContext}/>
-                    </div>
-
+                    <p className="elms-sans font-light text-3xl">Lorem ipsum dolor sit<br />amet, consectetur<br />adipiscing elit, sed do </p>
                 </div>
+                <a href="/synth" className="cinzel-decorative font-regular bg-black w-fit h-fit text-theme-white px-7 py-2 rounded-full">get started</a>
+            </div>
 
-            )}
-        </>
+
+
+        </div>
+
     )
-}
+};
+
+export default LandingPage;

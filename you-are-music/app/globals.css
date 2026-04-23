@@ -1,8 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Coral+Pixels&family=Elms+Sans:ital,wght@0,100..900;1,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
 @import "tailwindcss";
+
+.cinzel-decorative{
+  font-family: "Cinzel Decorative", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.elms-sans {
+  font-family: "Elms Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+.bg-theme-white{
+  background: #fbecf9;
+}
+
+.text-theme-white{
+  color: #fbecf9;
+}
+
+button{
+  cursor: pointer;
 }
 
 @theme inline {
