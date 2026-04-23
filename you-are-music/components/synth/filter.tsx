@@ -16,6 +16,11 @@ const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "pea
 
 const [minFreq, maxFreq] = [20, 20000];
 
+export interface FilterState {
+    frequency: number;
+    filterType: BiquadFilterType;
+};
+
 
 const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
 

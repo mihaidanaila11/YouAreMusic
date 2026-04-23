@@ -6,11 +6,20 @@ import ScaleController from "./scale";
 import Increment from "../UI Control/Control/increment";
 import PitchControll from "./pitchControll";
 import ChordManager from "./chordManager";
-import lfoController from "./Lfo/lfoController";
+import lfoController, { LfoState } from "./Lfo/lfoController";
 import LfoController from "./Lfo/lfoController";
+import { SynthControllerState } from "./synthController";
+import usePresetStore from "@/services/presetStore";
+import { SynthWrapper } from "@/app/context/synthIdContext";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
+}
+
+export interface GlobalSynthControllerState {
+    synth1State: SynthControllerState;
+    synth2State: SynthControllerState;
+    lfoState: LfoState;
 }
 
 const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
@@ -36,19 +45,34 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
         setPlayNote(false);
     };
 
+    const savePreset = usePresetStore((state) => state.savePreset);
+    const handleSavePreset = () => {
+        savePreset("My Preset");
+    }
+
+    const loadPreset = usePresetStore((state) => state.loadPreset);
+    const handleLoadPreset = () => {
+        loadPreset("Default Preset");
+    };
 
     return (
-        <div >
+        <div>
+            <button onClick={handleSavePreset}>Save preset</button>
+            <button onClick={handleLoadPreset}>Load preset</button>
             <div className="grid grid-cols-2 gap-10 m-6">
-  
+                <SynthWrapper synthId={"synth_1"}>
                     <Synth playNote={playNote}
-                    ctx={ctx}
-                    pitchSignal={pitchSignal.current}
-                    chordIntervals={chordIntervals} />
-                    <Synth playNote={playNote} 
-                    ctx={ctx}
-                    pitchSignal={pitchSignal.current}
-                    chordIntervals={chordIntervals} />
+                        ctx={ctx}
+                        pitchSignal={pitchSignal.current}
+                        chordIntervals={chordIntervals} />
+                </SynthWrapper>
+
+                <SynthWrapper synthId={"synth_2"}>
+                    <Synth playNote={playNote}
+                        ctx={ctx}
+                        pitchSignal={pitchSignal.current}
+                        chordIntervals={chordIntervals}/>
+                </SynthWrapper>
 
             </div>
 

@@ -6,6 +6,7 @@ import { Point } from "@/services/ControlManager";
 import Adsr from "@/components/synth/adsr";
 import DragManager from "@/services/AdsrDragManager";
 import * as Tone from "tone";
+import usePresetStore from "@/services/presetStore";
 
 type KnobMode = "linear" | "exponential";
 
@@ -19,18 +20,20 @@ interface knobProps {
     step?: number,
     sensitivity?: number,
     envelopeDestination?: Tone.Signal<any> | Tone.Param<any>,
-    mapMiddleware?: (value: number, min: number, max: number) => number
+    mapMiddleware?: (value: number, min: number, max: number) => number,
+    updatePreset?: (value: number) => void,
+    value?: number;
 
 }
 
-const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, mapMiddleware, envelopeDestination }: knobProps) => {
+const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = maxValue / 2, mode = "linear", step = maxValue / 100, sensitivity = maxValue / 100, mapMiddleware, envelopeDestination, updatePreset, value }: knobProps) => {
 
-    useEffect(() => {
-        if (defaultValue) {
-            setValue(defaultValue);
-            setCurrent(defaultValue);
-        }
-    }, [])
+    // useEffect(() => {
+    //     if (defaultValue) {
+    //         setValue(defaultValue);
+    //         setCurrent(defaultValue);
+    //     }
+    // }, [])
 
     // ------------
 
@@ -58,6 +61,12 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         startYRef.current = event.clientY;
     }
 
+    const lastValueRef = useRef(currentValue);
+    useEffect(() => {
+        setCurrent(value ?? defaultValue);
+    }, [value])
+
+
     useEffect(() => {
         if (!isDragged) return;
 
@@ -73,6 +82,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
             // Clamped values between min and max
             newValue = Math.max(minValue, Math.min(maxValue, newValue));
+            lastValueRef.current = newValue;
 
             let valuePercent = (newValue - minValue) / (maxValue - minValue);
 
@@ -92,6 +102,10 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
         const handleMouseUp = () => {
             setDragged(false);
+            if (updatePreset) {
+                console.log("Updating preset with value", lastValueRef.current);
+                updatePreset(lastValueRef.current);
+            }
         }
 
 

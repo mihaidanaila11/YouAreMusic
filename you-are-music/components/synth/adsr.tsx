@@ -9,6 +9,13 @@ interface AdsrProps {
     label?: string
 }
 
+export interface AdsrState {
+    attack: number;
+    decay: number;
+    sustain: number;
+    release: number;
+};
+
 const Adsr = ({ setParams, label }: AdsrProps) => {
     const [attackTime, setAttack] = useState<number>(0);
     const [decayTime, setDecay] = useState<number>(0);
