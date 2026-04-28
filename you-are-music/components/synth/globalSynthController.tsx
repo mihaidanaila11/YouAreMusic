@@ -11,6 +11,7 @@ import LfoController from "./Lfo/lfoController";
 import { SynthControllerState } from "./synthController";
 import usePresetStore from "@/services/presetStore";
 import { SynthWrapper } from "@/app/context/synthIdContext";
+import Presets from "../presets";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
@@ -45,20 +46,10 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
         setPlayNote(false);
     };
 
-    const savePreset = usePresetStore((state) => state.savePreset);
-    const handleSavePreset = () => {
-        savePreset("My Preset");
-    }
-
-    const loadPreset = usePresetStore((state) => state.loadPreset);
-    const handleLoadPreset = () => {
-        loadPreset("Default Preset");
-    };
 
     return (
         <div>
-            <button onClick={handleSavePreset}>Save preset</button>
-            <button onClick={handleLoadPreset}>Load preset</button>
+            <Presets />
             <div className="grid grid-cols-2 gap-10 m-6">
                 <SynthWrapper synthId={"synth_1"}>
                     <Synth playNote={playNote}

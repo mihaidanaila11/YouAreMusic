@@ -3,11 +3,16 @@ import Knob from "../UI Control/Control/knob";
 import { Line } from "react-chartjs-2";
 import { ChartData, Chart, CategoryScale, LinearScale, PointElement, LineElement, ChartOptions } from "chart.js";
 import * as Tone from "tone"
+import { SynthState } from "./synth";
+import { useCurrentSynth } from "@/app/hooks/presetSync";
 
 interface AdsrProps {
     setParams?: (attack: number, decay: number, sustain: number, release: number) => void,
-    label?: string
+    label?: string,
+    envId: string,
 }
+
+const adsrPath = "adsr";
 
 export interface AdsrState {
     attack: number;
@@ -16,11 +21,14 @@ export interface AdsrState {
     release: number;
 };
 
-const Adsr = ({ setParams, label }: AdsrProps) => {
+const Adsr = ({ setParams, label, envId }: AdsrProps) => {
     const [attackTime, setAttack] = useState<number>(0);
     const [decayTime, setDecay] = useState<number>(0);
     const [sustainValue, setSustain] = useState<number>(0);
     const [releaseTime, setRelease] = useState<number>(0);
+
+    const { state, setSynthState } = useCurrentSynth();
+    const handleSavePreset = (value: any, path: keyof SynthState) => setSynthState({ [`${adsrPath}${envId}_${path}`]: value });
 
     const attackValue = 1;
     const decayValue = 0.7;
@@ -104,14 +112,19 @@ const Adsr = ({ setParams, label }: AdsrProps) => {
                         maxValue={10}
                         setValue={setAttack}
                         label="Attack" 
-                        sensitivity={2}/>
+                        sensitivity={2}
+                        value={state.attack}
+                        updatePreset={(value) => {
+                            handleSavePreset(value, 'attack')
+                        }}/>
 
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setDecay}
                         label="Decay" 
-                        sensitivity={2}/>
+                        sensitivity={2}
+                        />
 
                     <Knob
                         minValue={0}
