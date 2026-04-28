@@ -13,6 +13,8 @@ import GainKnob from "../UI Control/Control/Synth/gainKnob";
 import usePresetStore from "@/services/presetStore";
 import { useCurrentSynth } from "@/app/hooks/presetSync";
 import colors from "@/app/colors";
+import { FilterState } from "./filter";
+import { SynthState } from "./synth";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -33,13 +35,17 @@ interface ChordVoice{
     multiplier: Tone.Multiply
 }
 
-export interface SynthControllerState{
+
+export type SynthControllerState = baseSynthState & FilterState;
+
+interface baseSynthState {
     detune: number;
     oscType: OmniOscillatorType;
     semitone: number;
     octave: number;
     bpm: number;
     unison: number;
+    gain: number;
 }
 
 const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals}: ControllerProps) => {
@@ -55,7 +61,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     const unisonVoices = useRef<Tone.Synth[]>([]);
     const chordVoices = useRef<ChordVoice[]>([]);
 
-    const { state, setSynthState } = useCurrentSynth()
+    const { state, setSynthState } = useCurrentSynth();
+    const handleSavePreset = (value: any, path: keyof SynthState) => setSynthState({ [path]: value });
 
     // Basic Waveform Visualization
     const [waveform, setWaveform] = useState<Float32Array>(new Float32Array(0));
@@ -393,16 +400,23 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
         };
     })
 
-    const handleSavePreset = (value: number, path: keyof SynthControllerState) => setSynthState({ [path]: value })
-
     return (
 
         <div className="select-none border-2 border-gray-300">
             <div className="">
-                <OptionPick setOption={setOscType} options={OscTypes} />
+                <OptionPick setOption={(option) => {
+                    setOscType(option as OmniOscillatorType);
+                    handleSavePreset(option as OmniOscillatorType, "oscType");
+                }} options={OscTypes} />
                 <div className="flex">
-                    <Increment setValue={setSemitone} minValue={-11} maxValue={11} label="Semitone" />
-                    <Increment setValue={setOctave} minValue={-3} maxValue={3} label="Octave" />
+                    <Increment setValue={(value) => {
+                        setSemitone(value);
+                        handleSavePreset(value, "semitone");
+                    }} minValue={-11} maxValue={11} label="Semitone" />
+                    <Increment setValue={(value) => {
+                        setOctave(value);
+                        handleSavePreset(value, "octave");
+                    }} minValue={-3} maxValue={3} label="Octave" />
                 </div>
                 <div className="h-20">
                     <Line data={waveformGraphData} options={options} />
@@ -427,7 +441,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                                 if (synth.volume.value !== undefined) synth.volume.value = gain;
                             })
                         }
-                    }} />
+                    }} value={state.gain} 
+                    updatePreset={(value) => handleSavePreset(value, "gain")}/>
 
                     <Knob
                         label="BPM"

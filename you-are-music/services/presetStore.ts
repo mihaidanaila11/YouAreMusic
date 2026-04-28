@@ -1,5 +1,6 @@
 import { FilterState } from '@/components/synth/filter';
 import { GlobalSynthControllerState } from '@/components/synth/globalSynthController';
+import { SynthState } from '@/components/synth/synth';
 import { SynthControllerState } from '@/components/synth/synthController';
 import { get } from 'http';
 import { create } from 'zustand'
@@ -7,25 +8,29 @@ import { create } from 'zustand'
 const defaultPreset = {
     name: "Default Preset",
     synthStates: {
-        "synth_1": { } as SynthControllerState,
-        "synth_2": { } as SynthControllerState,
-    } as Record<string, SynthControllerState>,
+        "synth_1": { } as SynthState,
+        "synth_2": { } as SynthState,
+    } as Record<string, SynthState>,
 }
 
-const presets = [defaultPreset];
+type Preset = typeof defaultPreset;
 
 
-interface PresetState {
-  synthStates: Record<string, SynthControllerState>;
-  updateSynthState: (synthId: string, newState: Partial<SynthControllerState>) => void;
+export interface PresetState {
+  synthStates: Record<string, SynthState>;
+  presets: Preset[];
+  updateSynthState: (synthId: string, newState: Partial<SynthState>) => void;
 
   savePreset: (presetName: string) => void;
   loadPreset: (presetName: string) => void;
+
+  getPresetNames: () => string[];
 }
 
 const usePresetStore = create<PresetState>((set, get) => ({
 
   synthStates: defaultPreset.synthStates,
+  presets: [defaultPreset],
 
   updateSynthState: (synthId, newState) => set((state) => {
     console.log(`Updating synth ${synthId} with`, newState);
@@ -45,7 +50,9 @@ const usePresetStore = create<PresetState>((set, get) => ({
       synthStates: synthStates,
     };
 
-    presets.push(presetData);
+    set((state) => ({
+      presets: [...state.presets, presetData]
+    }));
 
     const jsonData = JSON.stringify(presetData, null, 2);
 
@@ -53,7 +60,7 @@ const usePresetStore = create<PresetState>((set, get) => ({
   },
 
   loadPreset: (presetName) => {
-    const preset = presets.find((p) => p.name === presetName);
+    const preset = get().presets.find((p) => p.name === presetName);
 
     if (!preset) {
       console.error(`Preset "${presetName}" not found`);
@@ -66,6 +73,8 @@ const usePresetStore = create<PresetState>((set, get) => ({
       synthStates: preset.synthStates,
     });
   },
+
+  getPresetNames: () => get().presets.map((preset) => preset.name),
 }));
 
 export default usePresetStore;

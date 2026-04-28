@@ -2,6 +2,9 @@ import { RefObject, useCallback, useRef, useState } from "react";
 import Adsr from "./adsr";
 import * as Tone from "tone";
 import DragManager from "@/services/AdsrDragManager";
+import { useCurrentSynth } from "@/app/hooks/presetSync";
+import { SynthState } from "./synth";
+import { SynthWrapper } from "@/app/context/synthIdContext";
 
 interface AdsrControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>
@@ -23,19 +26,19 @@ const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
 
     const envs = [
         <div className={activeEnv === 0 ? "block" : "hidden"} key={0}>
-            <Adsr key={0} label={`Env 1`} setParams={synthSetParams} />
+                <Adsr key={0} label={`Env 1`} setParams={synthSetParams} envId="0" />
         </div>,
 
 
         ...Array.from({ length: envelopes.current.length - 1 }, (_, i) => (
             <div className={activeEnv === i + 1 ? "block" : "hidden"} key={i + 1}>
-                <Adsr key={i + 1} label={`Env ${i + 2}`}
-                    setParams={(attack, decay, sustain, release) => envelopes.current[i + 1].set({
-                        attack: attack,
-                        decay: decay,
-                        sustain: sustain,
-                        release: release
-                    })} />
+                    <Adsr key={i + 1} label={`Env ${i + 2}`} envId={(i + 1).toString()}
+                        setParams={(attack, decay, sustain, release) => envelopes.current[i + 1].set({
+                            attack: attack,
+                            decay: decay,
+                            sustain: sustain,
+                            release: release
+                        })} />
             </div>
         ))
     ];

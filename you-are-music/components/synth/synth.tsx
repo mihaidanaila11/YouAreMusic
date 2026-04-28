@@ -18,12 +18,13 @@ interface SynthProps {
     chordIntervals: number[];
 }
 
-interface SynthState {
-    synthState: SynthControllerState;
-    adsrState: AdsrState;
-    filterState: FilterState;
-    reverbState: ReverbState;
-}
+export type SynthState = SynthControllerState & AdsrState;
+// {
+//     synthState: SynthControllerState;
+//     adsrState: AdsrState;
+//     filterState: FilterState;
+//     reverbState: ReverbState;
+// }
 
 const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
     const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(new Tone.Synth({context: ctx}));
