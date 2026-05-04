@@ -25,6 +25,9 @@ export interface PresetState {
   loadPreset: (presetName: string) => void;
 
   getPresetNames: () => string[];
+  getPresetByName: (presetName: string) => Preset | undefined;
+
+  setPresets: (presets: Preset[]) => void;
 }
 
 const usePresetStore = create<PresetState>((set, get) => ({
@@ -75,6 +78,8 @@ const usePresetStore = create<PresetState>((set, get) => ({
   },
 
   getPresetNames: () => get().presets.map((preset) => preset.name),
+  getPresetByName: (presetName: string) => get().presets.find((p) => p.name === presetName),
+  setPresets: (presets: Preset[]) => set({ presets }),
 }));
 
 export default usePresetStore;
