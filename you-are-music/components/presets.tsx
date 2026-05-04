@@ -1,5 +1,5 @@
 import usePresetStore from "@/services/presetStore";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import OptionPick from "./UI Control/Control/optionPick";
 import { fetchPresetsAction, savePresetAction } from "@/services/db/presets";
 import { Preset } from "@/generated/prisma/client";
@@ -31,17 +31,22 @@ const Presets = () => {
 
     const savePreset = usePresetStore((state) => state.savePreset);
     const getPresetByName = usePresetStore((state) => state.getPresetByName);
+    
+    const [newPresetName, setNewPresetName] = useState("");
+
     const handleSavePreset = async () => {
         savePreset("My Preset");
         const savedPreset = getPresetByName("My Preset");
         const newPreset: Omit<Preset, "id"> = {
-            name: "My Preset",
+            name: newPresetName,
             data: savedPreset ? JSON.parse(JSON.stringify(savedPreset.synthStates)) : {},
             public: false,
             userId: null,
         }
 
         await savePresetAction(newPreset);
+        setNewPresetName("");
+        setIsModalOpen(false);
         console.log("Preset saved to DB:", newPreset);
     }
 
@@ -50,11 +55,43 @@ const Presets = () => {
     const handlePresetSelect = (presetName: string) => {
         loadPreset(presetName);
     }
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    
+
+    const openModal = () => {
+        setIsModalOpen(true);
+    }
     return (
         <div>
-            <button onClick={handleSavePreset}>Save preset</button>
+            {/* Modal for saving preset */}
 
-            <OptionPick options={presetNames} setOption={handlePresetSelect} />
+            {isModalOpen && (
+                <div className="bg-gray-800 text-white p-4 pt-0 rounded shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-200">
+                    <div className="flex flex-col items-center space-y-4">
+                        <div className="w-full flex justify-end">
+                            <button onClick={() => setIsModalOpen(false)}>x</button>
+                        </div>
+                        <div>
+                            <input 
+                                type="text" 
+                                placeholder="Preset Name" 
+                                value={newPresetName}
+                                onChange={(e) => setNewPresetName(e.target.value)}
+                            />
+                            <button onClick={handleSavePreset}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            <div>
+                <button onClick={openModal}>Save preset</button>
+
+                <OptionPick options={presetNames} setOption={handlePresetSelect} />
+            </div>
+
         </div>
     )
 };

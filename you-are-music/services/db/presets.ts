@@ -4,7 +4,11 @@ import { Preset, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/prisma";
 
 export async function fetchPresetsAction() {
-  const presets = await prisma.preset.findMany();
+  const presets = await prisma.preset.findMany({
+    where: {
+      public: true,
+    }
+  });
   return presets;
 }
 
