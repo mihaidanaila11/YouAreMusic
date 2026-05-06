@@ -1,8 +1,9 @@
 import usePresetStore from "@/services/presetStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import OptionPick from "./UI Control/Control/optionPick";
-import { fetchPresetsAction, savePresetAction } from "@/services/db/presets";
+import { fetchPresetsAction, fetchPresetsByUserIdAction, savePresetAction } from "@/services/db/presets";
 import { Preset } from "@/generated/prisma/client";
+import { getSession, useSession } from "next-auth/react";
 
 
 
@@ -12,7 +13,10 @@ const Presets = () => {
 
     useEffect(() => {
         const load = async () => {
-            const dbPresets = await fetchPresetsAction();
+            const session = await getSession();
+            if(!session) return;
+
+            const dbPresets = await fetchPresetsByUserIdAction(session.user.id);
             const statePresets = dbPresets.map((preset) => {
                 return {
                     name: preset.name,
@@ -35,13 +39,31 @@ const Presets = () => {
     const [newPresetName, setNewPresetName] = useState("");
 
     const handleSavePreset = async () => {
+        const session = await getSession();
+        if (!session) {
+            console.log("You must be logged in to save presets.");
+            setNewPresetName("");
+            setIsModalOpen(false);
+            return;
+        }
+        
+        const userId = session.user?.id || null;
+
+        if(!userId){
+            console.log("User ID not found in session.");
+            setNewPresetName("");
+            setIsModalOpen(false);
+            return;
+        }
+
         savePreset("My Preset");
         const savedPreset = getPresetByName("My Preset");
+
         const newPreset: Omit<Preset, "id"> = {
             name: newPresetName,
             data: savedPreset ? JSON.parse(JSON.stringify(savedPreset.synthStates)) : {},
             public: false,
-            userId: null,
+            userId: userId,
         }
 
         await savePresetAction(newPreset);
@@ -57,9 +79,18 @@ const Presets = () => {
     }
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(false);
     
 
-    const openModal = () => {
+    const openModal = async () => {
+        const session = await getSession();
+        console.log("Session in openModal:", session);
+        if (!session) {
+            setLoggedIn(false);
+        }
+        else{
+            setLoggedIn(true);
+        }
         setIsModalOpen(true);
     }
     return (
@@ -70,17 +101,24 @@ const Presets = () => {
                 <div className="bg-gray-800 text-white p-4 pt-0 rounded shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-200">
                     <div className="flex flex-col items-center space-y-4">
                         <div className="w-full flex justify-end">
-                            <button onClick={() => setIsModalOpen(false)}>x</button>
-                        </div>
-                        <div>
-                            <input 
-                                type="text" 
-                                placeholder="Preset Name" 
-                                value={newPresetName}
-                                onChange={(e) => setNewPresetName(e.target.value)}
-                            />
-                            <button onClick={handleSavePreset}>Save</button>
-                        </div>
+                                    <button onClick={() => setIsModalOpen(false)}>x</button>
+                                </div>
+                        {loggedIn ? (
+                            <div>
+                                
+                                <div>
+                                    <input
+                                        type="text"
+                                        placeholder="Preset Name"
+                                        value={newPresetName}
+                                        onChange={(e) => setNewPresetName(e.target.value)}
+                                    />
+                                    <button onClick={handleSavePreset}>Save</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <p>You must be logged in to save presets.</p>
+                        )}
                     </div>
                 </div>
             )}

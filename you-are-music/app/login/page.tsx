@@ -12,12 +12,14 @@ export default function LoginPage() {
     event.preventDefault();
     setError(null);
 
-    const result = await signIn("Credentials", {
+    const result = await signIn("credentials", {
       email,
       password,
-      callbackUrl: "/",
       redirect: false,
+      callbackUrl: "/",
     });
+
+    console.log("Sign-in result:", result);
 
     if (result?.error) {
       setError("Email sau parolă invalidă");

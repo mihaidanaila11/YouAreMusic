@@ -4,6 +4,7 @@ import ModelController from '@/components/model/ModelController';
 import GlobalSynthController from '@/components/synth/globalSynthController';
 import Sampler from '@/components/synth/Sampler/sampler';
 import Synth from '@/components/synth/synth';
+import Navbar from '@/components/UI/navbar';
 import usePresetStore from '@/services/presetStore';
 import { useState } from 'react';
 import * as Tone from "tone";
@@ -22,6 +23,7 @@ export default function Test() {
 
     return (
         <>
+            <Navbar />
             {
                 (!toneContext || toneContext.state === "suspended") && (
                     <div>

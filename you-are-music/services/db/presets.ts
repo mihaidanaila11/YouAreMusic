@@ -20,4 +20,13 @@ export async function savePresetAction(newPreset: Omit<Preset, "id">) {
     }
     })
     return createdPreset;
-}
+};
+
+export async function fetchPresetsByUserIdAction(userId: string) {
+    const presets = await prisma.preset.findMany({
+        where: {
+            userId: userId,
+        }
+    });
+    return presets;
+};

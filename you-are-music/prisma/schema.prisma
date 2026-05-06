@@ -19,6 +19,7 @@ model Preset {
   public    Boolean  @default(false)
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
+  isDefault Boolean  @default(false)
 }
 
 model User {

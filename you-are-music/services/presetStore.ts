@@ -79,7 +79,7 @@ const usePresetStore = create<PresetState>((set, get) => ({
 
   getPresetNames: () => get().presets.map((preset) => preset.name),
   getPresetByName: (presetName: string) => get().presets.find((p) => p.name === presetName),
-  setPresets: (presets: Preset[]) => set({ presets }),
+  setPresets: (presets: Preset[]) => set({ presets: [defaultPreset, ...presets] }),
 }));
 
 export default usePresetStore;
