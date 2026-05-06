@@ -68,12 +68,16 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
 
             </div>
 
-            <div className="flex items-center gap-3 justify-center">
-                <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
-                <ChordManager setIntervals={setChordIntervals} />
-                <div className="w-1/6">
-                    <LfoController ctx={ctx} />
-                    <Button>click me</Button>
+            <div className="flex justify-center">
+                <div className="grid grid-cols-2 w-200 gap-10">
+                    <div className="flex items-center border-2 border-gray-300 rounded h-full">
+                        <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
+                        <ChordManager setIntervals={setChordIntervals} />
+                    </div>
+
+                    <div className="">
+                        <LfoController ctx={ctx} />
+                    </div>
                 </div>
             </div>
             

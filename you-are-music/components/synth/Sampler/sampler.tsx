@@ -29,16 +29,19 @@ const Sampler = ({ ctx }: SamplerProps) => {
     }
 
     const handleAddSample = () => {
-        setSamples(prev => [...prev, <div className="flex items-center" key={prev.length}>
+        setSamples(prev => [...prev, <div className="flex items-end gap-3" key={prev.length}>
             <SampleController ctx={ctx} />
             <Button  onClick={() => handleDeleteSample(prev.length)}>Delete Sample</Button>
         </div>]);
     }
     return(
-        <div className="">
-            <h1>Sampler</h1>
+        <div className="mx-3">
+            <h1 className="mb-3">Sampler</h1>
+            <div className="flex flex-col gap-4 mb-3">
+                {samples}
+            </div>
             <Button onClick={handleAddSample}>Add Sample</Button>
-            {samples}
+            
         </div>
     )
 };

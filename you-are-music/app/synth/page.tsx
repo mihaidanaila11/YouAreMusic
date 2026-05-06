@@ -41,9 +41,12 @@ export default function Test() {
                     
                     <ModelController />
 
-                    <div >
+                    <div className='mt-3 border-2 border-gray-300'>
                         <GlobalSynthController ctx={toneContext}/>
-                        <Sampler ctx={toneContext}/>
+                        <div className='border-t-2 border-gray-300'>
+                            <Sampler ctx={toneContext}/>
+                        </div>
+                        
                     </div>
 
                 </div>

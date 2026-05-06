@@ -12,7 +12,6 @@ import Button from "./UI Control/Control/button";
 const Presets = () => {
     const session = useSession();
 
-    // 1. Select the raw data (assuming your store has a 'presets' object or array)
     const presets = usePresetStore((state) => state.presets);
     useEffect(() => {
         const load = async () => {
@@ -132,19 +131,22 @@ const Presets = () => {
             )}
 
 
-            <div className="flex items-center border-2 border-gray-300">
-                <Button onClick={openModal}>Save preset</Button>
+            <div className="border-b-2  mb-6 border-gray-300">
+                <div className="flex items-center mx-6 my-2">
+                    <Button onClick={openModal}>Save</Button>
 
-                <OptionPick options={presetNames} values={presets} setOption={handlePresetSelect} />
-                {selectedPreset?.userId === session.data?.user.id && 
-                <div className="text-3xl">
-                    <button onClick={() => {
-                        if(selectedPreset?.id && selectedPreset.userId){
-                            handleDeletePreset(selectedPreset.id, selectedPreset.userId);
-                        }
-                    }}><CiTrash /></button>
-                </div>}
+                    <OptionPick options={presetNames} values={presets} setOption={handlePresetSelect} />
+                    {selectedPreset?.userId === session.data?.user.id &&
+                        <div className="text-3xl">
+                            <button onClick={() => {
+                                if (selectedPreset?.id && selectedPreset.userId) {
+                                    handleDeletePreset(selectedPreset.id, selectedPreset.userId);
+                                }
+                            }}><CiTrash /></button>
+                        </div>}
+                </div>
             </div>
+            
 
         </div>
     )

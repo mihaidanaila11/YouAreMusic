@@ -88,7 +88,8 @@ const SampleController = ({ ctx }: SampleControllerProps) => {
         <div>
             <h1>Sample Controller</h1>
             <div className="flex items-center">
-                <input type="file" accept="audio/*" onChange={handleFileChange} />
+                <input type="file" accept="audio/*" onChange={handleFileChange} 
+                className="file:bg-gray-300 bg-gray-200 rounded-sm file:p-2 file:mr-2"/>
 
                 {sampleLoaded && (
                     <div className="flex items-center">
