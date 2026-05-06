@@ -12,6 +12,7 @@ import { SynthControllerState } from "./synthController";
 import usePresetStore from "@/services/presetStore";
 import { SynthWrapper } from "@/app/context/synthIdContext";
 import Presets from "../presets";
+import Button from "../UI Control/Control/button";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
@@ -67,10 +68,17 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
 
             </div>
 
-            <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
-            <ChordManager setIntervals={setChordIntervals} />
-            <LfoController ctx={ctx} />
-            < button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</button>
+            <div className="flex items-center gap-3 justify-center">
+                <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
+                <ChordManager setIntervals={setChordIntervals} />
+                <div className="w-1/6">
+                    <LfoController ctx={ctx} />
+                    <Button>click me</Button>
+                </div>
+            </div>
+            
+            
+            <Button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</Button>
 
         </div>
     )

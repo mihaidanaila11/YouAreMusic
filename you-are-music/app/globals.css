@@ -26,6 +26,14 @@
   background: #16f1fe;
 }
 
+.bg-theme-purple{
+  background: #821f7e;
+}
+
+.bg-theme-dark-purple{
+  background: #5d175a;
+}
+
 .text-theme-white{
   color: #fbecf9;
 }

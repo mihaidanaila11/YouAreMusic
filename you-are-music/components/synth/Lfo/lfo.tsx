@@ -10,7 +10,7 @@ const Lfo = ({ lfoRef }: LfoControllerProps) => {
 
 
     return(
-        <div className="flex gap-3">
+        <div className="flex justify-between">
             <Knob
             label="Frequency"
             setValue={(value: number) => {

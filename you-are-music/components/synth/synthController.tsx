@@ -15,6 +15,7 @@ import { useCurrentSynth } from "@/app/hooks/presetSync";
 import colors from "@/app/colors";
 import { FilterState } from "./filter";
 import { SynthState } from "./synth";
+import Button from "../UI Control/Control/button";
 
 interface ControllerProps {
     synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
@@ -426,7 +427,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
             <div className="flex justify-between">
                 <div className="flex items-center gap-3">
-                    < button onMouseDown={playNote} onMouseUp={stopNote}>Play note</button>
+                    < Button onMouseDown={playNote} onMouseUp={stopNote}>Play note</Button>
 
                     <GainKnob audioNodeRef={channelRef} callback={(gain) => {
                         try {

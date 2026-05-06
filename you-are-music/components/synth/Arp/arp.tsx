@@ -1,3 +1,4 @@
+import Button from "@/components/UI Control/Control/button";
 import Knob from "@/components/UI Control/Control/knob";
 import { useEffect, useRef, useState } from "react";
 import * as Tone from "tone";
@@ -21,9 +22,9 @@ const Arp = ({ synthRef }: ArpProps) => {
     }, [noteDuration]);
 
     return(
-        <div>
-            <button onClick={() => {patternRef.current.start(0);}}>Start Arp</button>
-            <button onClick={() => patternRef.current.stop()}>Stop Arp</button>
+        <div className="flex gap-3">
+            <Button onClick={() => {patternRef.current.start(0);}}>Start Arp</Button>
+            <Button onClick={() => patternRef.current.stop()}>Stop Arp</Button>
         </div>
     )
 };

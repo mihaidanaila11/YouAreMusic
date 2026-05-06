@@ -4,6 +4,7 @@ import ModelController from '@/components/model/ModelController';
 import GlobalSynthController from '@/components/synth/globalSynthController';
 import Sampler from '@/components/synth/Sampler/sampler';
 import Synth from '@/components/synth/synth';
+import Button from '@/components/UI Control/Control/button';
 import Navbar from '@/components/UI/navbar';
 import usePresetStore from '@/services/presetStore';
 import { useState } from 'react';
@@ -28,7 +29,7 @@ export default function Test() {
                 (!toneContext || toneContext.state === "suspended") && (
                     <div>
                         <p className='text-center'>Click to start the music</p>
-                        <button onClick={handleStartAudio} className='cursor-pointer'>Start Audio</button>
+                        <Button onClick={handleStartAudio}>Start Audio</Button>
                     </div>
                 )
             }

@@ -1,4 +1,5 @@
 import MapControll from "@/components/hand/mapControll";
+import Button from "@/components/UI Control/Control/button";
 import Increment from "@/components/UI Control/Control/increment";
 import Knob from "@/components/UI Control/Control/knob";
 import GainKnob from "@/components/UI Control/Control/Synth/gainKnob";
@@ -117,7 +118,7 @@ const SampleController = ({ ctx }: SampleControllerProps) => {
                             mapKnobValue={mapControll}
                             showMenu={true}
                         />
-                        <button onMouseDown={handleTrigger} onMouseUp={handleRelease}>Play Sample</button>
+                        <Button onMouseDown={handleTrigger} onMouseUp={handleRelease}>Play Sample</Button>
 
                     </div>
                 )}

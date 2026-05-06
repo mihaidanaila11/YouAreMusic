@@ -56,8 +56,8 @@ const LfoController = ({ lfosNumber = 3, ctx }: LfoControllerProps) => {
     }
 
     return (
-        <div>
-            <div className="w-1/2 flex justify-between">
+        <div className="border-2 border-gray-300">
+            <div className=" flex justify-between">
                 {Array.from({ length: lfosNumber }, (_, i) => (
                     <span className="cursor-pointer dragableAdsr" key={i}
                     onClick={() => {handleEnvChange(i)}}

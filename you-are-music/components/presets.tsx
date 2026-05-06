@@ -5,6 +5,7 @@ import { deletePresetAction, fetchPresetsAction, fetchPresetsByUserIdAction, sav
 
 import { getSession, useSession } from "next-auth/react";
 import { CiTrash } from "react-icons/ci";
+import Button from "./UI Control/Control/button";
 
 
 
@@ -120,7 +121,7 @@ const Presets = () => {
                                         value={newPresetName}
                                         onChange={(e) => setNewPresetName(e.target.value)}
                                     />
-                                    <button onClick={handleSavePreset}>Save</button>
+                                    <Button onClick={handleSavePreset}>Save</Button>
                                 </div>
                             </div>
                         ) : (
@@ -131,8 +132,8 @@ const Presets = () => {
             )}
 
 
-            <div>
-                <button onClick={openModal}>Save preset</button>
+            <div className="flex items-center border-2 border-gray-300">
+                <Button onClick={openModal}>Save preset</Button>
 
                 <OptionPick options={presetNames} values={presets} setOption={handlePresetSelect} />
                 {selectedPreset?.userId === session.data?.user.id && 

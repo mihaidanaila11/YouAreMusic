@@ -15,6 +15,7 @@ Sampler
 import { useState } from "react";
 import SampleController from "./sampleController";
 import * as Tone from "tone";
+import Button from "@/components/UI Control/Control/button";
 
 interface SamplerProps {
     ctx: Tone.BaseContext,
@@ -30,13 +31,13 @@ const Sampler = ({ ctx }: SamplerProps) => {
     const handleAddSample = () => {
         setSamples(prev => [...prev, <div className="flex items-center" key={prev.length}>
             <SampleController ctx={ctx} />
-            <button  onClick={() => handleDeleteSample(prev.length)}>Delete Sample</button>
+            <Button  onClick={() => handleDeleteSample(prev.length)}>Delete Sample</Button>
         </div>]);
     }
     return(
         <div className="">
             <h1>Sampler</h1>
-            <button onClick={handleAddSample}>Add Sample</button>
+            <Button onClick={handleAddSample}>Add Sample</Button>
             {samples}
         </div>
     )
