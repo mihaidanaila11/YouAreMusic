@@ -1,26 +1,29 @@
 import usePresetStore from "@/services/presetStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import OptionPick from "./UI Control/Control/optionPick";
-import { fetchPresetsAction, fetchPresetsByUserIdAction, savePresetAction } from "@/services/db/presets";
+import { deletePresetAction, fetchPresetsAction, fetchPresetsByUserIdAction, savePresetAction } from "@/services/db/presets";
 import { Preset } from "@/generated/prisma/client";
 import { getSession, useSession } from "next-auth/react";
+import { CiTrash } from "react-icons/ci";
 
 
 
 const Presets = () => {
+    const session = useSession();
+
     // 1. Select the raw data (assuming your store has a 'presets' object or array)
     const presets = usePresetStore((state) => state.presets);
-
     useEffect(() => {
         const load = async () => {
-            const session = await getSession();
-            if(!session) return;
+            if(!session.data) return;
 
-            const dbPresets = await fetchPresetsByUserIdAction(session.user.id);
+            const dbPresets = await fetchPresetsByUserIdAction(session.data.user.id);
             const statePresets = dbPresets.map((preset) => {
                 return {
+                    id: preset.id,
                     name: preset.name,
-                    synthStates: preset.data as Record<string, any>, // Adjust this based on your actual data structure
+                    synthStates: preset.data as Record<string, any>,
+                    userId: preset.userId,
                 }
             }) // Asta rulează pe server
             console.log("Fetched presets:", presets);
@@ -39,15 +42,14 @@ const Presets = () => {
     const [newPresetName, setNewPresetName] = useState("");
 
     const handleSavePreset = async () => {
-        const session = await getSession();
-        if (!session) {
+        if (!session.data) {
             console.log("You must be logged in to save presets.");
             setNewPresetName("");
             setIsModalOpen(false);
             return;
         }
         
-        const userId = session.user?.id || null;
+        const userId = session.data.user?.id || null;
 
         if(!userId){
             console.log("User ID not found in session.");
@@ -74,8 +76,12 @@ const Presets = () => {
 
     const loadPreset = usePresetStore((state) => state.loadPreset);
 
-    const handlePresetSelect = (presetName: string) => {
-        loadPreset(presetName);
+    const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
+
+    const handlePresetSelect = (preset: Preset) => {
+        loadPreset(preset.name);
+        console.log(preset)
+        setSelectedPreset(preset);
     }
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -83,15 +89,31 @@ const Presets = () => {
     
 
     const openModal = async () => {
-        const session = await getSession();
         console.log("Session in openModal:", session);
-        if (!session) {
+        if (!session.data) {
             setLoggedIn(false);
         }
         else{
             setLoggedIn(true);
         }
         setIsModalOpen(true);
+    }
+
+    const handleDeletePreset = async (presetId: string, userId: string) => {
+        if(!session.data) return;
+        if (userId === session.data.user.id) {
+            // Call the delete action for the preset
+            const response = await deletePresetAction(presetId);
+            if (response.error) {
+                console.error("Failed to delete preset:", response.error);
+            } else {
+                // If deletion was successful, update the local state to remove the preset
+                usePresetStore.setState((state) => ({
+                    presets: state.presets.filter((preset) => preset.id !== presetId)
+                }));
+                console.log("Preset deleted successfully");
+            }
+        }
     }
     return (
         <div>
@@ -127,7 +149,15 @@ const Presets = () => {
             <div>
                 <button onClick={openModal}>Save preset</button>
 
-                <OptionPick options={presetNames} setOption={handlePresetSelect} />
+                <OptionPick options={presetNames} values={presets} setOption={handlePresetSelect} />
+                {selectedPreset?.userId === session.data?.user.id && 
+                <div className="text-3xl">
+                    <button onClick={() => {
+                        if(selectedPreset?.id && selectedPreset.userId){
+                            handleDeletePreset(selectedPreset.id, selectedPreset.userId);
+                        }
+                    }}><CiTrash /></button>
+                </div>}
             </div>
 
         </div>

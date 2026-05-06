@@ -30,3 +30,19 @@ export async function fetchPresetsByUserIdAction(userId: string) {
     });
     return presets;
 };
+
+export async function deletePresetAction(presetId: string) {
+    try{
+      await prisma.preset.delete({
+        where: {
+            id: presetId,
+        }
+    });
+
+      return { success: true };
+    }
+    catch(error){
+        console.error("Error deleting preset:", error);
+        return {error: "Failed to delete preset"};
+    }
+}

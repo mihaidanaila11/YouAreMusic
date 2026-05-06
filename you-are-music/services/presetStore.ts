@@ -5,15 +5,23 @@ import { SynthControllerState } from '@/components/synth/synthController';
 import { get } from 'http';
 import { create } from 'zustand'
 
+type Preset = {
+    id?: string;
+    name: string;
+    synthStates: Record<string, SynthState>;
+    userId?: string | null;
+}
+
 const defaultPreset = {
     name: "Default Preset",
     synthStates: {
         "synth_1": { } as SynthState,
         "synth_2": { } as SynthState,
     } as Record<string, SynthState>,
-}
+    isFromUser: false,
+} as Preset;
 
-type Preset = typeof defaultPreset;
+
 
 
 export interface PresetState {
@@ -51,6 +59,7 @@ const usePresetStore = create<PresetState>((set, get) => ({
     const presetData = {
       name: presetName,
       synthStates: synthStates,
+      isFromUser: true
     };
 
     set((state) => ({
