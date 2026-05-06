@@ -4,6 +4,7 @@ import "./globals.css";
 import AuthProvider from "@/components/Auth/AuthProvider";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import Footer from "@/components/UI/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,7 +39,13 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-theme-white`}
       >
-        <AuthProvider session={session}>{children}</AuthProvider>
+        <div className="flex flex-col min-h-screen">
+          <div className="flex-1 ">
+            <AuthProvider session={session}>{children}</AuthProvider>
+          </div>
+
+          <Footer />
+        </div>
       </body>
     </html>
   );

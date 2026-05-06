@@ -37,7 +37,7 @@ export default function Test() {
             {toneContext && toneContext.state === "running" && (
 
 
-                <div className='mx-2 elms-sans'>
+                <div className='mx-2 mb-6 elms-sans'>
                     
                     <ModelController />
 
