@@ -106,14 +106,14 @@ const Presets = () => {
 
             {isModalOpen && (
                 <div className="bg-gray-800 text-white p-4 pt-0 rounded shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-200">
-                    <div className="flex flex-col items-center space-y-4">
+                    <div className="flex flex-col items-center gap-6 m-4">
                         <div className="w-full flex justify-end">
                                     <button onClick={() => setIsModalOpen(false)}>x</button>
                                 </div>
                         {loggedIn ? (
                             <div>
                                 
-                                <div>
+                                <div className="flex">
                                     <input
                                         type="text"
                                         placeholder="Preset Name"

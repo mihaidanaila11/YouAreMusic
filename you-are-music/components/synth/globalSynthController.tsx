@@ -68,7 +68,7 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
 
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center justify-center gap-6">
                 <div className="grid grid-cols-2 w-200 gap-10">
                     <div className="flex items-center border-2 border-gray-300 rounded h-full">
                         <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
@@ -79,10 +79,11 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
                         <LfoController ctx={ctx} />
                     </div>
                 </div>
+                <Button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</Button>
             </div>
             
             
-            <Button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</Button>
+            
 
         </div>
     )

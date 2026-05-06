@@ -35,7 +35,7 @@ const Sampler = ({ ctx }: SamplerProps) => {
         </div>]);
     }
     return(
-        <div className="mx-3">
+        <div className="m-3">
             <h1 className="mb-3">Sampler</h1>
             <div className="flex flex-col gap-4 mb-3">
                 {samples}
