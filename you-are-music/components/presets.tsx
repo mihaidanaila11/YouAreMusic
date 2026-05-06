@@ -1,22 +1,29 @@
-import usePresetStore from "@/services/presetStore";
+import usePresetStore, { Preset } from "@/services/presetStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import OptionPick from "./UI Control/Control/optionPick";
-import { fetchPresetsAction, savePresetAction } from "@/services/db/presets";
-import { Preset } from "@/generated/prisma/client";
+import { deletePresetAction, fetchPresetsAction, fetchPresetsByUserIdAction, savePresetAction } from "@/services/db/presets";
+
+import { getSession, useSession } from "next-auth/react";
+import { CiTrash } from "react-icons/ci";
 
 
 
 const Presets = () => {
+    const session = useSession();
+
     // 1. Select the raw data (assuming your store has a 'presets' object or array)
     const presets = usePresetStore((state) => state.presets);
-
     useEffect(() => {
         const load = async () => {
-            const dbPresets = await fetchPresetsAction();
+            if(!session.data) return;
+
+            const dbPresets = await fetchPresetsByUserIdAction(session.data.user.id);
             const statePresets = dbPresets.map((preset) => {
                 return {
+                    id: preset.id,
                     name: preset.name,
-                    synthStates: preset.data as Record<string, any>, // Adjust this based on your actual data structure
+                    synthStates: preset.data as Record<string, any>,
+                    userId: preset.userId,
                 }
             }) // Asta rulează pe server
             console.log("Fetched presets:", presets);
@@ -35,32 +42,63 @@ const Presets = () => {
     const [newPresetName, setNewPresetName] = useState("");
 
     const handleSavePreset = async () => {
-        savePreset("My Preset");
-        const savedPreset = getPresetByName("My Preset");
-        const newPreset: Omit<Preset, "id"> = {
-            name: newPresetName,
-            data: savedPreset ? JSON.parse(JSON.stringify(savedPreset.synthStates)) : {},
-            public: false,
-            userId: null,
+        if(!session.data) return;
+
+        const preset = await savePreset(newPresetName, session.data.user.id);
+
+        if(!preset) {
+            console.error("Failed to save preset");
+            return;
         }
 
-        await savePresetAction(newPreset);
+        setSelectedPreset(preset);
+
         setNewPresetName("");
         setIsModalOpen(false);
-        console.log("Preset saved to DB:", newPreset);
     }
 
     const loadPreset = usePresetStore((state) => state.loadPreset);
 
-    const handlePresetSelect = (presetName: string) => {
-        loadPreset(presetName);
+    const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
+
+    const handlePresetSelect = (preset: Preset) => {
+        loadPreset(preset.name);
+        console.log(preset)
+        setSelectedPreset(preset);
     }
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(false);
     
 
-    const openModal = () => {
+    const openModal = async () => {
+        console.log("Session in openModal:", session);
+        if (!session.data) {
+            setLoggedIn(false);
+        }
+        else{
+            setLoggedIn(true);
+        }
         setIsModalOpen(true);
+    }
+
+    const handleDeletePreset = async (presetId: string, userId: string) => {
+        console.log("Session in handleDeletePreset:", session);
+        if(!session.data) return;
+        if (userId === session.data.user.id) {
+            // Call the delete action for the preset
+            console.log(`Attempting to delete preset with ID: ${presetId} for user ID: ${userId}`);
+            const response = await deletePresetAction(presetId);
+            if (response.error) {
+                console.error("Failed to delete preset:", response.error);
+            } else {
+                // If deletion was successful, update the local state to remove the preset
+                usePresetStore.setState((state) => ({
+                    presets: state.presets.filter((preset) => preset.id !== presetId)
+                }));
+                console.log("Preset deleted successfully");
+            }
+        }
     }
     return (
         <div>
@@ -70,17 +108,24 @@ const Presets = () => {
                 <div className="bg-gray-800 text-white p-4 pt-0 rounded shadow-lg absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-200">
                     <div className="flex flex-col items-center space-y-4">
                         <div className="w-full flex justify-end">
-                            <button onClick={() => setIsModalOpen(false)}>x</button>
-                        </div>
-                        <div>
-                            <input 
-                                type="text" 
-                                placeholder="Preset Name" 
-                                value={newPresetName}
-                                onChange={(e) => setNewPresetName(e.target.value)}
-                            />
-                            <button onClick={handleSavePreset}>Save</button>
-                        </div>
+                                    <button onClick={() => setIsModalOpen(false)}>x</button>
+                                </div>
+                        {loggedIn ? (
+                            <div>
+                                
+                                <div>
+                                    <input
+                                        type="text"
+                                        placeholder="Preset Name"
+                                        value={newPresetName}
+                                        onChange={(e) => setNewPresetName(e.target.value)}
+                                    />
+                                    <button onClick={handleSavePreset}>Save</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <p>You must be logged in to save presets.</p>
+                        )}
                     </div>
                 </div>
             )}
@@ -89,7 +134,15 @@ const Presets = () => {
             <div>
                 <button onClick={openModal}>Save preset</button>
 
-                <OptionPick options={presetNames} setOption={handlePresetSelect} />
+                <OptionPick options={presetNames} values={presets} setOption={handlePresetSelect} />
+                {selectedPreset?.userId === session.data?.user.id && 
+                <div className="text-3xl">
+                    <button onClick={() => {
+                        if(selectedPreset?.id && selectedPreset.userId){
+                            handleDeletePreset(selectedPreset.id, selectedPreset.userId);
+                        }
+                    }}><CiTrash /></button>
+                </div>}
             </div>
 
         </div>

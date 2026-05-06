@@ -3,13 +3,23 @@ import { useEffect, useState } from "react";
 interface OptionPickProps{
     setOption: (option: any) => void,
     options: any[]
+    values?: any[]
 }
 
-const OptionPick = ({ setOption, options }: OptionPickProps) => {
+const OptionPick = ({ setOption, options, values }: OptionPickProps) => {
     const [currentOptionIndex, setIndex] = useState<number>(0);
 
     useEffect(() => {
-        setOption(options[currentOptionIndex]);
+        setIndex(options.length - 1);
+    }, [options, values])
+
+    useEffect(() => {
+        if(values) {
+            setOption(values[currentOptionIndex]);
+        }
+        else{
+            setOption(options[currentOptionIndex]);
+        }
     }, [currentOptionIndex])
 
     const handleNext = () => {

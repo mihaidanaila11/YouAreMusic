@@ -20,4 +20,30 @@ export async function savePresetAction(newPreset: Omit<Preset, "id">) {
     }
     })
     return createdPreset;
+};
+
+export async function fetchPresetsByUserIdAction(userId: string) {
+    const presets = await prisma.preset.findMany({
+        where: {
+            userId: userId,
+        }
+    });
+    return presets;
+};
+
+export async function deletePresetAction(presetId: string) {
+  console.log("Attempting to delete preset with ID:", presetId);
+    try{
+      await prisma.preset.delete({
+        where: {
+            id: presetId,
+        }
+    });
+
+      return { success: true };
+    }
+    catch(error){
+        console.error("Error deleting preset:", error);
+        return {error: "Failed to delete preset"};
+    }
 }
