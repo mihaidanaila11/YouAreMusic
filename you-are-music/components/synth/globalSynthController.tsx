@@ -51,7 +51,7 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
     return (
         <div>
             <Presets />
-            <div className="grid grid-cols-2 gap-10 m-6">
+            <div className="grid grid-cols-2 gap-10 m-6 max-md:grid-cols-1">
                 <SynthWrapper synthId={"synth_1"}>
                     <Synth playNote={playNote}
                         ctx={ctx}
@@ -69,7 +69,7 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
             </div>
 
             <div className="flex flex-col items-center justify-center gap-6">
-                <div className="grid grid-cols-2 w-200 gap-10">
+                <div className="grid grid-cols-2 max-sm:grid-cols-1 gap-10">
                     <div className="flex items-center border-2 border-gray-300 rounded h-full">
                         <PitchControll pitchSignal={pitchSignal} setEnvelope={setEnvelope} />
                         <ChordManager setIntervals={setChordIntervals} />
