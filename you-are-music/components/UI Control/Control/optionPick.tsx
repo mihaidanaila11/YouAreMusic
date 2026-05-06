@@ -10,6 +10,10 @@ const OptionPick = ({ setOption, options, values }: OptionPickProps) => {
     const [currentOptionIndex, setIndex] = useState<number>(0);
 
     useEffect(() => {
+        setIndex(options.length - 1);
+    }, [options, values])
+
+    useEffect(() => {
         if(values) {
             setOption(values[currentOptionIndex]);
         }

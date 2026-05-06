@@ -1,8 +1,8 @@
-import usePresetStore from "@/services/presetStore";
+import usePresetStore, { Preset } from "@/services/presetStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import OptionPick from "./UI Control/Control/optionPick";
 import { deletePresetAction, fetchPresetsAction, fetchPresetsByUserIdAction, savePresetAction } from "@/services/db/presets";
-import { Preset } from "@/generated/prisma/client";
+
 import { getSession, useSession } from "next-auth/react";
 import { CiTrash } from "react-icons/ci";
 
@@ -42,36 +42,19 @@ const Presets = () => {
     const [newPresetName, setNewPresetName] = useState("");
 
     const handleSavePreset = async () => {
-        if (!session.data) {
-            console.log("You must be logged in to save presets.");
-            setNewPresetName("");
-            setIsModalOpen(false);
-            return;
-        }
-        
-        const userId = session.data.user?.id || null;
+        if(!session.data) return;
 
-        if(!userId){
-            console.log("User ID not found in session.");
-            setNewPresetName("");
-            setIsModalOpen(false);
+        const preset = await savePreset(newPresetName, session.data.user.id);
+
+        if(!preset) {
+            console.error("Failed to save preset");
             return;
         }
 
-        savePreset("My Preset");
-        const savedPreset = getPresetByName("My Preset");
+        setSelectedPreset(preset);
 
-        const newPreset: Omit<Preset, "id"> = {
-            name: newPresetName,
-            data: savedPreset ? JSON.parse(JSON.stringify(savedPreset.synthStates)) : {},
-            public: false,
-            userId: userId,
-        }
-
-        await savePresetAction(newPreset);
         setNewPresetName("");
         setIsModalOpen(false);
-        console.log("Preset saved to DB:", newPreset);
     }
 
     const loadPreset = usePresetStore((state) => state.loadPreset);
@@ -100,9 +83,11 @@ const Presets = () => {
     }
 
     const handleDeletePreset = async (presetId: string, userId: string) => {
+        console.log("Session in handleDeletePreset:", session);
         if(!session.data) return;
         if (userId === session.data.user.id) {
             // Call the delete action for the preset
+            console.log(`Attempting to delete preset with ID: ${presetId} for user ID: ${userId}`);
             const response = await deletePresetAction(presetId);
             if (response.error) {
                 console.error("Failed to delete preset:", response.error);

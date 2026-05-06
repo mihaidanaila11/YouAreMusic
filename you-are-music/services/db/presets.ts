@@ -32,6 +32,7 @@ export async function fetchPresetsByUserIdAction(userId: string) {
 };
 
 export async function deletePresetAction(presetId: string) {
+  console.log("Attempting to delete preset with ID:", presetId);
     try{
       await prisma.preset.delete({
         where: {
