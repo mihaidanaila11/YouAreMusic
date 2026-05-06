@@ -1,5 +1,6 @@
 "use client";
 
+import User from "@/validation/user";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -7,10 +8,22 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [mailErrors, setMailErrors] = useState<string[] | null>(null);
+  const [passwordErrors, setPasswordErrors] = useState<string[] | null>(null);
 
   const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+
+    const validation = User.safeParse({ email, password });
+    if (!validation.success) {
+      const mailErrors = validation.error.issues.filter(issue => issue.path[0] === "email").map(issue => issue.message);
+      setMailErrors(mailErrors.length > 0 ? mailErrors : null);
+
+      const passwordErrors = validation.error.issues.filter(issue => issue.path[0] === "password").map(issue => issue.message);
+      setPasswordErrors(passwordErrors.length > 0 ? passwordErrors : null);
+      return;
+    }
 
     const result = await signIn("credentials", {
       email,
@@ -42,6 +55,9 @@ export default function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
+          {mailErrors && mailErrors.map((err, index) => (
+            <p key={index} className="text-sm text-red-600">{err}</p>
+          ))}
         </label>
 
         <label className="block space-y-1">
@@ -52,6 +68,9 @@ export default function LoginPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
+          {passwordErrors && passwordErrors.map((err, index) => (
+            <p key={index} className="text-sm text-red-600">{err}</p>
+          ))}
         </label>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}

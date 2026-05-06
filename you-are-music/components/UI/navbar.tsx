@@ -19,7 +19,11 @@ const Navbar = () => {
     return(
         <nav className="flex justify-end px-6 py-4 gap-3">
             {user ? (
-                <p>Welcome, {user}!</p>
+                <div>
+                    <a href="/api/auth/signout"> Sign Out </a>
+                    <p>Welcome, {user}!</p>
+                </div>
+                
             ) : (
                 <>
                     <a href="/login" className="">
