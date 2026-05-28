@@ -130,6 +130,7 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
                     x: landmark.x,
                     y: landmark.y,
                     z: landmark.z,
+                    // asta e stanga/dreapta, nu e vizibilitate
                     visibility: landmark.visibility,
                 }
             });
