@@ -59,12 +59,12 @@ Arhitectura de ansamblu (componentă front-end, detecție video, motor audio):
 
 ```mermaid
 flowchart LR
-	A[Webcam] --> B[Detecție Mână (MediaPipe / Model)]
-	B --> C[Manager Gesture -> Param Mapping]
-	C --> D[Sinteză Audio (WebAudio API)]
-	D --> E[Output Audio]
-	C --> F[UI Controls & Presets]
-	F --> G[Persistență (Prisma / DB)]
+	A[Webcam] --> B["Detecție Mână (MediaPipe / Model)"]
+	B --> C["Manager Gesture -> Param Mapping"]
+	C --> D["Sinteză Audio (WebAudio API)"]
+	D --> E["Output Audio"]
+	C --> F["UI Controls & Presets"]
+	F --> G["Persistență (Prisma / DB)"]
 ```
 
 Fluxul de date pentru controlul parametrilor:
