@@ -18,7 +18,7 @@ YouAreMusic este o aplicație web modernă care transformă mișcările mâinii 
 
 **Ce vinde acest proiect**: o experiență intuitivă pentru muzicieni și creatori multimedia, care combină detectarea avansată a mișcării mâinii, sinteză audio în browser și o arhitectură scalabilă pentru extinderi viitoare.
 
---
+---
 
 **Conținut**
 - **Overview**: scop, public țintă și valoare adăugată
@@ -29,7 +29,7 @@ YouAreMusic este o aplicație web modernă care transformă mișcările mâinii 
 - **Contribuire**
 - **Resurse și referințe**
 
---
+---
 
 **Demo vizual**
 - Interfața principală: pagina [app/page.tsx](you-are-music/app/page.tsx)
@@ -81,7 +81,7 @@ sequenceDiagram
 		S->>Audio: aplică modificări
 ```
 
---
+---
 
 **Instalare & rulare locală**
 
@@ -112,7 +112,7 @@ npm run dev
 
 **Notă despre browser & permisiuni**: Acordă permisiunea de acces la webcam; folosește un browser modern (Chrome, Edge, Firefox). Pentru performanță, preferă o pagină servită prin HTTPS la producție.
 
---
+---
 
 **Structură relevantă a proiectului**
 - `app/` — pagini și layout Next.js
@@ -123,7 +123,7 @@ npm run dev
 
 Vezi fișiere: [you-are-music/app/webcam/webcam.tsx](you-are-music/app/webcam/webcam.tsx), [you-are-music/services/presetStore.ts](you-are-music/services/presetStore.ts)
 
---
+---
 
 **Utilizare**
 1. Accesează interfața principală.
@@ -131,4 +131,4 @@ Vezi fișiere: [you-are-music/app/webcam/webcam.tsx](you-are-music/app/webcam/we
 3. Folosește menu-urile pentru a mapa axe la parametri (de ex. sus/jos -> pitch, stânga/dreapta -> filter).
 4. Salvează preseturi și experimentează cu arpegiatorul și LFO-urile.
 
---
+---
