@@ -164,12 +164,12 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     useEffect(() => {
         if (!synthRef.current) return;
         try {
-            synthRef.current.detune.setValueAtTime(detune + semitone * 100 + octave * 1200, "+0");
+            synthRef.current.detune.setValueAtTime( semitone * 100 + octave * 1200, "+0");
         } catch (error) {
             console.error("Error setting synth detune:", error);
-            synthRef.current.detune.value = detune + semitone * 100 + octave * 1200;
+            synthRef.current.detune.value = semitone * 100 + octave * 1200;
         }
-    }, [detune, semitone, octave]);
+    }, [semitone, octave]);
 
 
     // Handle detune

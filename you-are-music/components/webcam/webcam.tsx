@@ -31,6 +31,7 @@ export default function Webcam({videoRef}: WebcamProps){
         height={480}
         autoPlay
         playsInline
+        muted
       />
     </>
   );

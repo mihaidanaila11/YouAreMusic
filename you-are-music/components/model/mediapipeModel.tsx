@@ -55,20 +55,33 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
     // Setup mediapipe model
     useEffect(() => {
         const setupModel = async () => {
-            try{
-               setLoading(true);
+            const createLandmarker = async (delegate: "GPU" | "CPU") => {
                 const vision = await FilesetResolver.forVisionTasks(
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
                 );
-                
-                const createdLandmarker = await HandLandmarker.createFromOptions(vision, {
+
+                return await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-                        delegate: "GPU" 
+                        delegate,
                     },
                     runningMode: "VIDEO",
-                    numHands: 2
+                    numHands: 2,
                 });
+            };
+
+            try{
+               setLoading(true);
+                let createdLandmarker;
+
+                try {
+                    createdLandmarker = await createLandmarker("GPU");
+                    setError(null);
+                } catch (gpuError) {
+                    console.warn("GPU delegate unavailable, falling back to CPU.", gpuError);
+                    createdLandmarker = await createLandmarker("CPU");
+                    setError("GPU unavailable, using CPU fallback.");
+                }
 
 
                 setHandLandmarker(createdLandmarker);
