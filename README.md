@@ -35,6 +35,8 @@ YouAreMusic este o aplicație web modernă care transformă mișcările mâinii 
 - Interfața principală: pagina [app/page.tsx](you-are-music/app/page.tsx)
 - Controlul sintetizatorului: [you-are-music/app/synth/page.tsx](you-are-music/app/synth/page.tsx)
 
+<img src="media/synth.gif">
+
 **Tehnologii principale**: Next.js, React, TypeScript, Tailwind, WebAudio API, MediaPipe (sau modelul de detectare folosit), Prisma pentru persistență.
 
 **Public țintă**: muzicieni, dezvoltatori multimedia, cercetători în HCI, studenți.
