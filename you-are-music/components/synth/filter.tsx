@@ -12,7 +12,7 @@ interface FilterProps{
     ctx: Tone.BaseContext;
 };
 
-const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass", "peaking"] as BiquadFilterType[];
+const filterTypes = ["lowpass", "highpass", "bandpass", "notch", "allpass"] as BiquadFilterType[];
 
 const [minFreq, maxFreq] = [20, 20000];
 

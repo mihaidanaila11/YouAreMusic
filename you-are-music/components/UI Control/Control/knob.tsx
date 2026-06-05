@@ -78,7 +78,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
             const steps = Math.round(delta / sensitivity);
 
             let newValue = currentValue + steps * step;
-
+            console.log("Delta:", delta, "currentValue:", currentValue, "Steps:", steps, "New Value before clamp:", newValue);
 
 
             // Clamped values between min and max
@@ -140,7 +140,7 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
         const circleUsableLen = usableLen * circleRadius;
 
-        const valuePercent = currentValue / maxValue
+        const valuePercent = (currentValue - minValue) / (maxValue - minValue);
 
         const valueLineLen = Math.max(0, Math.min(circleUsableLen * valuePercent, circleUsableLen));
 
@@ -359,9 +359,11 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
 
                     </div>}
 
-                    <div>
-                        <MapControll mapKnobValue={mapKnobValue} showMenu={showBindMenu} />
-                    </div>
+                    {showMenu && showBindMenu && (
+                        <div>
+                            <MapControll mapKnobValue={mapKnobValue} />
+                        </div>
+                    )}
                 </div>
             </div>
 

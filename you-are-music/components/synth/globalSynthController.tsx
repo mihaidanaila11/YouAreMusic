@@ -56,14 +56,14 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
             <FistControl setPlayNote={setPlayNote} />
             <Presets />
             <div className="grid grid-cols-2 gap-10 m-6 max-md:grid-cols-1">
-                <SynthWrapper synthId={"synth_1"}>
+                <SynthWrapper synthId={"osc_1"}>
                     <Synth playNote={playNote}
                         ctx={ctx}
                         pitchSignal={pitchSignal.current}
                         chordIntervals={chordIntervals} />
                 </SynthWrapper>
 
-                <SynthWrapper synthId={"synth_2"}>
+                <SynthWrapper synthId={"osc_2"}>
                     <Synth playNote={playNote}
                         ctx={ctx}
                         pitchSignal={pitchSignal.current}

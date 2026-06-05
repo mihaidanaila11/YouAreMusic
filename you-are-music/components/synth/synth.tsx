@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Adsr, { AdsrState } from "./adsr";
-import SynthController, { SynthControllerState } from "./synthController";
+import OscController, { SynthControllerState } from "./synthController";
 import * as Tone from "tone";
 import FilterController, { FilterState } from "./filter";
 import ReverbController, { ReverbState } from "./reverb";
@@ -27,7 +27,7 @@ export type SynthState = SynthControllerState & AdsrState;
 // }
 
 const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
-    const synthRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(new Tone.Synth({context: ctx}));
+    const oscRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(new Tone.Synth({context: ctx}));
     const filterRef = useRef<Tone.Filter | null>(null);
     const reverbRef = useRef<Tone.Reverb | null>(null);
     const [filterLoaded, setFilterLoaded] = useState(false);
@@ -36,13 +36,13 @@ const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
     const adsrEnvelopes = useRef<Tone.Envelope[]>(Array.from({ length: 4 }, () => new Tone.Envelope()));
 
     useEffect(() => {
-        if (!synthRef.current) return;
-        pitchSignal.connect(synthRef.current.frequency);
-    }, [pitchSignal, synthRef.current]);
+        if (!oscRef.current) return;
+        pitchSignal.connect(oscRef.current.frequency);
+    }, [pitchSignal, oscRef.current]);
 
     return(
         <div className="m-w-full">
-            <SynthController synthRef={synthRef} 
+            <OscController oscRef={oscRef} 
             pitchSignal={pitchSignal}
             nodes={[filterRef, reverbRef]}
             adsrEnvelopes={adsrEnvelopes}
@@ -55,7 +55,7 @@ const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
             
             <div className="grid grid-rows-1 grid-cols-4">
                 <div className="col-span-3">
-                    <AdsrController synthRef={synthRef} envelopes={adsrEnvelopes} />
+                    <AdsrController oscRef={oscRef} envelopes={adsrEnvelopes} />
                 </div>
                 
                 <FilterController filterRef={filterRef}
@@ -69,7 +69,7 @@ const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
                 console.log("Reverb loaded", reverbRef.current);
                 setReverbLoaded(true)} }
                 ctx={ctx}/> 
-            <Arp synthRef={synthRef} />           
+            <Arp oscRef={oscRef} />           
 
         </div>
     )

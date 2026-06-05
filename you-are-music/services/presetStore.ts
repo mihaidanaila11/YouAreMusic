@@ -16,8 +16,8 @@ export type Preset = {
 const defaultPreset = {
     name: "Default Preset",
     synthStates: {
-        "synth_1": { } as SynthState,
-        "synth_2": { } as SynthState,
+        "osc_1": { } as SynthState,
+        "osc_2": { } as SynthState,
     } as Record<string, SynthState>,
     isFromUser: false,
 } as Preset;
@@ -69,7 +69,8 @@ const usePresetStore = create<PresetState>((set, get) => ({
       name: presetName,
       data: JSON.parse(JSON.stringify(synthStates)),
       userId: userId,
-      public: false
+      public: false,
+      isDefault:false,
     }
 
     try{

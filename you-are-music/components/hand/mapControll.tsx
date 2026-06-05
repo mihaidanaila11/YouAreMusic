@@ -5,9 +5,8 @@ import { indexFingerBus, leftHandYBus, middleFingerBus, pinkyFingerBus, Point, r
 
 interface MapControllProps {
     mapKnobValue: (value: number) => void;
-    showMenu: boolean;
 }
-const MapControll = ({ mapKnobValue, showMenu }: MapControllProps) => {
+const MapControll = ({ mapKnobValue }: MapControllProps) => {
 
     const [availableKeypoints, setAvailableKeypoints] = useState({
         indexFinger: { name: "Index Finger", controlManager: indexFingerBus },
@@ -32,22 +31,20 @@ const MapControll = ({ mapKnobValue, showMenu }: MapControllProps) => {
     }, [selectedKeypoint, mapKnobValue]);
     return (
         <>
-            {
-                showMenu && (
-                    <div className="bg-gray-100 rounded-xl p-2 mt-2 w-fit">
-                        <select value={selectedKeypoint} onChange={(e) => setSelectedKeypoint(e.target.value as KeypointKey)}>
-                            {["-", ...Object.keys(availableKeypoints)].map((keypointKey) => (
-                                <option key={keypointKey} value={keypointKey}>
-                                    {keypointKey === "-" ? "Select a Finger" : availableKeypoints[keypointKey as KeypointKey].name}
-                                </option>
-                            ))}
-                        </select>
+       
 
-                    </div>
+            <div className="bg-gray-100 rounded-xl p-2 mt-2 w-fit">
+                <select value={selectedKeypoint} onChange={(e) => setSelectedKeypoint(e.target.value as KeypointKey)}>
+                    {["-", ...Object.keys(availableKeypoints)].map((keypointKey) => (
+                        <option key={keypointKey} value={keypointKey}>
+                            {keypointKey === "-" ? "Select a Finger" : availableKeypoints[keypointKey as KeypointKey].name}
+                        </option>
+                    ))}
+                </select>
 
-                )
-            }
+            </div>
 
+   
         </>
 
     )

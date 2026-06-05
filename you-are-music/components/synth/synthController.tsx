@@ -11,14 +11,14 @@ import ScaleController from "./scale";
 import Toggle from "../UI Control/Control/toggle";
 import GainKnob from "../UI Control/Control/Synth/gainKnob";
 import usePresetStore from "@/services/presetStore";
-import { useCurrentSynth } from "@/app/hooks/presetSync";
+import { useCurrentOsc } from "@/app/hooks/presetSync";
 import colors from "@/app/colors";
 import { FilterState } from "./filter";
 import { SynthState } from "./synth";
 import Button from "../UI Control/Control/button";
 
 interface ControllerProps {
-    synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
+    oscRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>,
     pitchSignal: Tone.Signal<"frequency">,
     nodes?: RefObject<Tone.ToneAudioNode | null>[],
     adsrEnvelopes: RefObject<Tone.Envelope[]>,
@@ -49,7 +49,7 @@ interface baseSynthState {
     gain: number;
 }
 
-const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals}: ControllerProps) => {
+const OscController = ({ oscRef, pitchSignal, nodes, adsrEnvelopes, playNoteState, ctx, filtersLoaded, chordIntervals}: ControllerProps) => {
 
     // const [gain, setGain] = useState<number>(50);
     const [detune, setDetune] = useState<number>(0);
@@ -62,7 +62,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     const unisonVoices = useRef<Tone.Synth[]>([]);
     const chordVoices = useRef<ChordVoice[]>([]);
 
-    const { state, setSynthState } = useCurrentSynth();
+    const { state, setSynthState } = useCurrentOsc();
     const handleSavePreset = (value: any, path: keyof SynthState) => setSynthState({ [path]: value });
 
     // Basic Waveform Visualization
@@ -70,12 +70,12 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
     useEffect(() => {
         const getBuffer = async () => {
-            if (!synthRef.current) return null;
+            if (!oscRef.current) return null;
             const oscFreq = 100;
             const analyseTime = 1 / oscFreq;
 
             const buffer = await Tone.Offline(async () => {
-                if (!synthRef.current) return;
+                if (!oscRef.current) return;
 
                 const synth = new Tone.Synth();
                 synth.oscillator.type = oscType;
@@ -162,12 +162,12 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     const channelRef = useRef<Tone.Channel | null>(new Tone.Channel({ context: ctx }));
 
     useEffect(() => {
-        if (!synthRef.current) return;
+        if (!oscRef.current) return;
         try {
-            synthRef.current.detune.setValueAtTime( semitone * 100 + octave * 1200, "+0");
+            oscRef.current.detune.setValueAtTime( semitone * 100 + octave * 1200, "+0");
         } catch (error) {
             console.error("Error setting synth detune:", error);
-            synthRef.current.detune.value = semitone * 100 + octave * 1200;
+            oscRef.current.detune.value = semitone * 100 + octave * 1200;
         }
     }, [semitone, octave]);
 
@@ -178,7 +178,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     
 
     useEffect(() => {
-        if (!synthRef.current || !channelRef.current) return;
+        if (!oscRef.current || !channelRef.current) return;
 
         const currentUnison = unisonVoices.current.length;
 
@@ -196,7 +196,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
             for (let i = 0; i < synthsNeeded; i++) {
                 const newSynth = new Tone.Synth({
-                    ...(synthRef.current.get() as Tone.SynthOptions),
+                    ...(oscRef.current.get() as Tone.SynthOptions),
                     volume: 0,
                     context: ctx
                 }).connect(channelRef.current);
@@ -231,7 +231,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
 
     useEffect(() => {
-        if(!synthRef.current) return;
+        if(!oscRef.current) return;
 
         chordVoices.current.forEach(chord => {
             chord.synth.dispose();
@@ -241,10 +241,10 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
         chordVoices.current = [];
 
         chordIntervals.forEach((interval) => {
-            if(interval === 0 || !synthRef.current) return;
+            if(interval === 0 || !oscRef.current) return;
 
             const newSynth = new Tone.Synth({
-                ...(synthRef.current.get() as Tone.SynthOptions),
+                ...(oscRef.current.get() as Tone.SynthOptions),
                 context: ctx
             }).connect(channelRef.current!);
 
@@ -260,10 +260,10 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     }, [chordIntervals])
 
     const playNote = async () => {
-        if (!synthRef.current) return;
+        if (!oscRef.current) return;
         const note = Tone.Frequency(pitchSignal.value);
 
-        synthRef.current.triggerAttack(note);
+        oscRef.current.triggerAttack(note);
 
         unisonVoices.current.forEach((synth) => {
             synth.triggerAttack(note);
@@ -281,7 +281,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     }
 
     const stopNote = () => {
-        synthRef.current?.triggerRelease();
+        oscRef.current?.triggerRelease();
         unisonVoices.current.forEach((synth) => {
             synth.triggerRelease();
         });
@@ -309,16 +309,16 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
             channelRef.current = new Tone.Channel({ context: ctx });
         }
 
-        if (!synthRef.current) {
+        if (!oscRef.current) {
 
-            synthRef.current = new Tone.Synth({ context: ctx });
-            synthRef.current.oscillator.type = oscType;
+            oscRef.current = new Tone.Synth({ context: ctx });
+            oscRef.current.oscillator.type = oscType;
         }
 
-        synthRef.current.disconnect();
+        oscRef.current.disconnect();
 
 
-        synthRef.current.connect(channelRef.current);
+        oscRef.current.connect(channelRef.current);
 
         const validNodes = nodes
             ?.map((node) => node.current)
@@ -357,8 +357,8 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
 
     // Handle Oscillator Type Change
     useEffect(() => {
-        if (!synthRef.current) return;
-        synthRef.current.oscillator.type = oscType;
+        if (!oscRef.current) return;
+        oscRef.current.oscillator.type = oscType;
 
         chordVoices.current.forEach(voice => {
             voice.synth.oscillator.type = oscType;
@@ -462,7 +462,7 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
                         maxValue={100}
                         defaultValue={0}
                         value={state.detune}
-                        envelopeDestination={synthRef.current?.detune}
+                        envelopeDestination={oscRef.current?.detune}
                         updatePreset={(value) => handleSavePreset(value, "detune")}
                     />
 
@@ -484,4 +484,4 @@ const SynthController = ({ synthRef, pitchSignal, nodes, adsrEnvelopes, playNote
     )
 };
 
-export default SynthController;
+export default OscController;

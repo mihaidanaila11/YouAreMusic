@@ -4,7 +4,7 @@ import { Line } from "react-chartjs-2";
 import { ChartData, Chart, CategoryScale, LinearScale, PointElement, LineElement, ChartOptions } from "chart.js";
 import * as Tone from "tone"
 import { SynthState } from "./synth";
-import { useCurrentSynth } from "@/app/hooks/presetSync";
+import { useCurrentOsc } from "@/app/hooks/presetSync";
 
 interface AdsrProps {
     setParams?: (attack: number, decay: number, sustain: number, release: number) => void,
@@ -27,7 +27,7 @@ const Adsr = ({ setParams, label, envId }: AdsrProps) => {
     const [sustainValue, setSustain] = useState<number>(0);
     const [releaseTime, setRelease] = useState<number>(0);
 
-    const { state, setSynthState } = useCurrentSynth();
+    const { state, setSynthState } = useCurrentOsc();
     const handleSavePreset = (value: any, path: keyof SynthState) => setSynthState({ [`${adsrPath}${envId}_${path}`]: value });
 
     const attackValue = 1;

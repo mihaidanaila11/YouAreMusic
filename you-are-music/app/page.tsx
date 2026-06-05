@@ -39,7 +39,7 @@ const LandingPage = () => {
                         <span className="cinzel-decorative font-bold">{pauseWords ? "music" : words[currentWordIndex]}</span>
                     </h1>
 
-                    <p className="elms-sans font-light text-3xl">Lorem ipsum dolor sit<br />amet, consectetur<br />adipiscing elit, sed do </p>
+                    <p className="elms-sans font-light text-3xl">Break any barriers.<br />Make your gestures heard!</p>
                 </div>
                 <a href="/synth" className="cinzel-decorative font-regular bg-black w-fit h-fit text-theme-white px-7 py-2 rounded-full">get started</a>
             </div>

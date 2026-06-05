@@ -40,7 +40,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-theme-white`}
       >
         <div className="flex flex-col min-h-screen">
-          <div className="flex-1 ">
+          <div className="flex-1 flex flex-col">
             <AuthProvider session={session}>{children}</AuthProvider>
           </div>
 

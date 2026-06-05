@@ -2,27 +2,27 @@ import { RefObject, useCallback, useRef, useState } from "react";
 import Adsr from "./adsr";
 import * as Tone from "tone";
 import DragManager from "@/services/AdsrDragManager";
-import { useCurrentSynth } from "@/app/hooks/presetSync";
+import { useCurrentOsc } from "@/app/hooks/presetSync";
 import { SynthState } from "./synth";
 import { SynthWrapper } from "@/app/context/synthIdContext";
 
 interface AdsrControllerProps {
-    synthRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>
+    oscRef: RefObject<Tone.Synth<Tone.SynthOptions> | null>
     envelopes: RefObject<Tone.Envelope[]>
 }
 
-const AdsrController = ({ synthRef, envelopes }: AdsrControllerProps) => {
+const AdsrController = ({ oscRef, envelopes }: AdsrControllerProps) => {
     const [activeEnv, setActiveEnv] = useState<number>(0);
 
     const synthSetParams = useCallback((attack: number, decay: number, sustain: number, release: number) => {
-        if (!synthRef || !synthRef.current) return;
-        synthRef.current.envelope.set({
+        if (!oscRef || !oscRef.current) return;
+        oscRef.current.envelope.set({
             attack: attack,
             decay: decay,
             sustain: sustain,
             release: release
         });
-    }, [synthRef]);
+    }, [oscRef]);
 
     const envs = [
         <div className={activeEnv === 0 ? "block" : "hidden"} key={0}>

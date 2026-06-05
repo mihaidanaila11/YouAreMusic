@@ -303,17 +303,16 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
     }
 
     return(
-        <div className='flex'>
-            <p>
+        <div className=''>
+            <div>
                 {loading ? "Model is loading" : (
                     error ? error : ("Model loaded.")
                 )}
-            </p>
+            </div>
 
-            <p>
+            <div className='text-center text-lg font-bold mt-2'>
                 {calibrationModeState && calibrationMessage}
-            </p>
-            {!error && <button onClick={predict}>Click</button>}
+            </div>
         </div>
     )
 } 

@@ -27,7 +27,7 @@ export default function Test() {
             <Navbar />
             {
                 (!toneContext || toneContext.state === "suspended") && (
-                    <div>
+                    <div className='m-3 flex flex-1 justify-center flex-col items-center gap-3'>
                         <p className='text-center'>Click to start the music</p>
                         <Button onClick={handleStartAudio}>Start Audio</Button>
                     </div>
