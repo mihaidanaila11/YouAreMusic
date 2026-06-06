@@ -5,13 +5,24 @@ import { SynthControllerState } from '@/components/synth/synthController';
 import { get } from 'http';
 import { create } from 'zustand'
 import { savePresetAction } from './db/presets';
+import { LfoState } from '@/components/synth/Lfo/lfo';
+
+export interface GlobalStates {
+    lfos: Record<string, LfoState>;
+    bpm: number;
+    pitch: number;
+}
 
 export type Preset = {
     id?: string;
     name: string;
     synthStates: Record<string, SynthState>;
+    globalStates: GlobalStates;
+    isFromUser: boolean;
     userId?: string | null;
 }
+
+
 
 const defaultPreset = {
     name: "Default Preset",
@@ -19,6 +30,15 @@ const defaultPreset = {
         "osc_1": { } as SynthState,
         "osc_2": { } as SynthState,
     } as Record<string, SynthState>,
+    globalStates: {
+      "lfos": {
+        "lfos_1": { } as LfoState,
+        "lfos_2": { } as LfoState,
+        "lfos_3": { } as LfoState,
+      } as Record<string, LfoState>,
+      "bpm": 120,
+      "pitch": 67,     
+    } as GlobalStates,
     isFromUser: false,
 } as Preset;
 
@@ -28,7 +48,10 @@ const defaultPreset = {
 export interface PresetState {
   synthStates: Record<string, SynthState>;
   presets: Preset[];
+  globalStates: GlobalStates;
   updateSynthState: (synthId: string, newState: Partial<SynthState>) => void;
+  updateGlobalState: (newState: Partial<GlobalStates>) => void;
+  updateLfoState: (lfoId: string, newState: Partial<LfoState>) => void;
 
   savePreset: (presetName: string, userId: string) => Promise<Preset | null>;
   loadPreset: (presetName: string) => void;
@@ -42,6 +65,7 @@ export interface PresetState {
 const usePresetStore = create<PresetState>((set, get) => ({
 
   synthStates: defaultPreset.synthStates,
+  globalStates: defaultPreset.globalStates,
   presets: [defaultPreset],
 
   updateSynthState: (synthId, newState) => set((state) => {
@@ -55,11 +79,29 @@ const usePresetStore = create<PresetState>((set, get) => ({
     }
   }),
 
+  updateGlobalState: (newState) => set((state) => ({
+    globalStates: {
+      ...state.globalStates,
+      ...newState
+    }
+  })),
+
+  updateLfoState: (lfoId, newState) => set((state) => ({
+    globalStates: {
+      ...state.globalStates,
+      lfos: {
+        ...state.globalStates.lfos,
+        [lfoId]: { ...state.globalStates.lfos[lfoId], ...newState }
+      }
+    }
+  })),
+
   savePreset: async (presetName, userId): Promise<Preset | null>  => {
-    const { synthStates } = get();
+    const { synthStates, globalStates } = get();
     const presetData = {
       name: presetName,
       synthStates: synthStates,
+      globalStates: globalStates,
       isFromUser: true,
       userId: userId,
       public: false
@@ -67,7 +109,10 @@ const usePresetStore = create<PresetState>((set, get) => ({
 
     const presetDbData = {
       name: presetName,
-      data: JSON.parse(JSON.stringify(synthStates)),
+      data: JSON.parse(JSON.stringify({
+        synthStates: synthStates,
+        globalStates: globalStates,
+      })),
       userId: userId,
       public: false,
       isDefault:false,
@@ -112,6 +157,7 @@ const usePresetStore = create<PresetState>((set, get) => ({
 
     set({
       synthStates: preset.synthStates,
+      globalStates: preset.globalStates,
     });
   },
 

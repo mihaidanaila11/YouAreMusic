@@ -124,6 +124,10 @@ const Adsr = ({ setParams, label, envId }: AdsrProps) => {
                         setValue={setDecay}
                         label="Decay" 
                         sensitivity={2}
+                        value={state.decay}
+                        updatePreset={(value) => {
+                            handleSavePreset(value, 'decay')
+                        }}
                         />
 
                     <Knob
@@ -131,14 +135,22 @@ const Adsr = ({ setParams, label, envId }: AdsrProps) => {
                         maxValue={1}
                         setValue={setSustain}
                         label="Sustain" 
-                        sensitivity={2}/>
+                        sensitivity={2}
+                        value={state.sustain}
+                        updatePreset={(value) => {
+                            handleSavePreset(value, 'sustain')
+                        }} />
 
                     <Knob
                         minValue={0}
                         maxValue={10}
                         setValue={setRelease}
                         label="Release"
-                        sensitivity={2} />
+                        sensitivity={2}
+                        value={state.release}
+                        updatePreset={(value) => {
+                            handleSavePreset(value, 'release')
+                        }} />
                 </div>
             </div>
         </div>

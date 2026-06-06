@@ -6,7 +6,7 @@ import ScaleController from "./scale";
 import Increment from "../UI Control/Control/increment";
 import PitchControll from "./pitchControll";
 import ChordManager from "./chordManager";
-import lfoController, { LfoState } from "./Lfo/lfoController";
+import lfoController, { LfoState } from "./Lfo/lfo";
 import LfoController from "./Lfo/lfoController";
 import { SynthControllerState } from "./synthController";
 import usePresetStore from "@/services/presetStore";
@@ -14,6 +14,8 @@ import { SynthWrapper } from "@/app/context/synthIdContext";
 import Presets from "../presets";
 import Button from "../UI Control/Control/button";
 import FistControl from "./fistControl";
+import BpmController from "./bpmController";
+import Arp from "./Arp/arp";
 
 interface GlobalSynthControllerProps {
     ctx: Tone.BaseContext;
@@ -51,22 +53,27 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
 
 
     return (
+        <>
+        
         <div>
-            <FistControl setPlayNote={setPlayNote} />
+                <FistControl setPlayNote={setPlayNote} />
+                
             <Presets />
             <div className="grid grid-cols-2 gap-10 m-6 max-md:grid-cols-1">
                 <SynthWrapper synthId={"osc_1"}>
                     <Synth playNote={playNote}
                         ctx={ctx}
                         pitchSignal={pitchSignal.current}
-                        chordIntervals={chordIntervals} />
+                        chordIntervals={chordIntervals}
+                        synthRefs={synthRefs} />
                 </SynthWrapper>
 
                 <SynthWrapper synthId={"osc_2"}>
                     <Synth playNote={playNote}
                         ctx={ctx}
                         pitchSignal={pitchSignal.current}
-                        chordIntervals={chordIntervals}/>
+                        chordIntervals={chordIntervals}
+                        synthRefs={synthRefs} />
                 </SynthWrapper>
 
             </div>
@@ -85,10 +92,13 @@ const GlobalSynthController = ({ ctx }: GlobalSynthControllerProps) => {
                 <Button onMouseDown={handlePlayNote} onMouseUp={handleStopNote}>Play note</Button>
             </div>
             
-            
-            
-
+            <div className="border-2 border-gray-300 rounded p-4 m-6 flex justify-center items-center gap-6">
+                <BpmController />
+                <Arp oscRefs={synthRefs} pitchSignal={pitchSignal} />
+            </div>
         </div>
+
+        </>
     )
 };
 

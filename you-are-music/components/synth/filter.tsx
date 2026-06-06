@@ -5,6 +5,7 @@ import { Line } from "react-chartjs-2";
 import { Chart, ChartData, ChartOptions } from "chart.js";
 import { mapValues } from "@/utils/Math";
 import OptionPick from "../UI Control/Control/optionPick";
+import { useCurrentOsc } from "@/app/hooks/presetSync";
 
 interface FilterProps{
     filterRef: RefObject<Tone.Filter | null>,
@@ -29,6 +30,10 @@ const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
     const chartDataRef = useRef<ChartData<"line", number[], number> | null>(null);
     const chartLineRef = useRef<Chart<"line"> | null>(null);
     const [filterType, setFilterType] = useState<BiquadFilterType>(filterTypes[0]);
+
+
+    const {state, setSynthState} = useCurrentOsc();
+    const handleSavePreset = (value: any, path: keyof FilterState) => setSynthState({ [path]: value });
 
     useEffect(() => {
         if(!filterRef.current){
@@ -183,6 +188,8 @@ const FilterController = ( {filterRef, onLoaded, ctx}: FilterProps) => {
         mode="exponential"
         sensitivity={0.4}
         envelopeDestination={filterRef.current?.frequency}
+        value={state.frequency}
+        updatePreset={(value) => handleSavePreset(value, "frequency")}
         />
 
         

@@ -8,12 +8,6 @@ interface LfoControllerProps {
     ctx: Tone.BaseContext;
 }
 
-export interface LfoState {
-    frequency: number;
-    min: number;
-    max: number;
-    type: Tone.ToneOscillatorType;
-}
 
 const LfoController = ({ lfosNumber = 3, ctx }: LfoControllerProps) => {
     const [currentLfo, setCurrentLfo] = useState(0);
@@ -38,7 +32,7 @@ const LfoController = ({ lfosNumber = 3, ctx }: LfoControllerProps) => {
     const lfosDivs = Array.from({ length: lfosNumber }, (_, i) => (
         <div key={i} className={`${currentLfo === i ? "block" : "hidden"}`}>
             <h3>LFO {i + 1}</h3>
-            <Lfo lfoRef={lfos.current[i]} />
+            <Lfo lfoRef={lfos.current[i]} id={i+1} />
         </div>
     ));
 

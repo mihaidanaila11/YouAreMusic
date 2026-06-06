@@ -13,6 +13,7 @@ export async function fetchPresetsAction() {
 }
 
 export async function savePresetAction(newPreset: Omit<Preset, "id">) {
+    console.log("Saving preset to database:", newPreset);
     const createdPreset = await prisma.preset.create({
     data: {
       ...newPreset,

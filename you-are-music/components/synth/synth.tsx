@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import Adsr, { AdsrState } from "./adsr";
 import OscController, { SynthControllerState } from "./synthController";
 import * as Tone from "tone";
@@ -16,9 +16,10 @@ interface SynthProps {
     pitchSignal: Tone.Signal<"frequency">;
     ctx: Tone.BaseContext;
     chordIntervals: number[];
+    synthRefs?: RefObject<Set<Tone.Synth<Tone.SynthOptions>>>;
 }
 
-export type SynthState = SynthControllerState & AdsrState;
+export type SynthState = SynthControllerState & AdsrState & FilterState & ReverbState;
 // {
 //     synthState: SynthControllerState;
 //     adsrState: AdsrState;
@@ -26,7 +27,7 @@ export type SynthState = SynthControllerState & AdsrState;
 //     reverbState: ReverbState;
 // }
 
-const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
+const Synth = ({ playNote, pitchSignal, ctx, chordIntervals, synthRefs }: SynthProps) => {
     const oscRef = useRef<Tone.Synth<Tone.SynthOptions> | null>(new Tone.Synth({context: ctx}));
     const filterRef = useRef<Tone.Filter | null>(null);
     const reverbRef = useRef<Tone.Reverb | null>(null);
@@ -39,6 +40,17 @@ const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
         if (!oscRef.current) return;
         pitchSignal.connect(oscRef.current.frequency);
     }, [pitchSignal, oscRef.current]);
+
+    useEffect(() => {
+        if (!oscRef.current || !synthRefs) return;
+
+        synthRefs.current?.add(oscRef.current);
+
+        return () => {
+            if(!oscRef.current) return;
+            synthRefs.current?.delete(oscRef.current);
+        };
+    }, [synthRefs]);
 
     return(
         <div className="m-w-full">
@@ -68,8 +80,7 @@ const Synth = ({ playNote, pitchSignal, ctx, chordIntervals }: SynthProps) => {
             onLoaded = { () => {
                 console.log("Reverb loaded", reverbRef.current);
                 setReverbLoaded(true)} }
-                ctx={ctx}/> 
-            <Arp oscRef={oscRef} />           
+                ctx={ctx}/>          
 
         </div>
     )

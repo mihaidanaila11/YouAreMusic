@@ -1,4 +1,4 @@
-import usePresetStore, { Preset } from "@/services/presetStore";
+import usePresetStore, { GlobalStates, Preset } from "@/services/presetStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import OptionPick from "./UI Control/Control/optionPick";
 import { deletePresetAction, fetchPresetsAction, fetchPresetsByUserIdAction, savePresetAction } from "@/services/db/presets";
@@ -19,11 +19,14 @@ const Presets = () => {
 
             const dbPresets = await fetchPresetsByUserIdAction(session.data.user.id);
             const statePresets = dbPresets.map((preset) => {
+                const data = preset.data as { synthStates: Record<string, any>, globalStates: Record<string, any> };
                 return {
                     id: preset.id,
                     name: preset.name,
-                    synthStates: preset.data as Record<string, any>,
+                    synthStates: data.synthStates as Record<string, any>,
+                    globalStates: data.globalStates as GlobalStates,
                     userId: preset.userId,
+                    isFromUser: true,
                 }
             }) // Asta rulează pe server
             console.log("Fetched presets:", presets);

@@ -44,7 +44,6 @@ interface baseSynthState {
     oscType: OmniOscillatorType;
     semitone: number;
     octave: number;
-    bpm: number;
     unison: number;
     gain: number;
 }
@@ -56,7 +55,7 @@ const OscController = ({ oscRef, pitchSignal, nodes, adsrEnvelopes, playNoteStat
     const [oscType, setOscType] = useState<OmniOscillatorType>("sawtooth");
     const [semitone, setSemitone] = useState<number>(0);
     const [octave, setOctave] = useState<number>(0);
-    const [bpm, setBpm] = useState<number>(120);
+
     const maxDetune = 100;
     const [unison, setUnison] = useState<number>(0);
     const unisonVoices = useRef<Tone.Synth[]>([]);
@@ -369,10 +368,7 @@ const OscController = ({ oscRef, pitchSignal, nodes, adsrEnvelopes, playNoteStat
         });
     }, [oscType]);
 
-    // Handle BPM change
-    useEffect(() => {
-        Tone.Transport.bpm.rampTo(bpm, 0.1);
-    }, [bpm]);
+    
 
     // Handle keyboard play/stop
     useEffect(() => {
@@ -445,13 +441,6 @@ const OscController = ({ oscRef, pitchSignal, nodes, adsrEnvelopes, playNoteStat
                     }} value={state.gain} 
                     updatePreset={(value) => handleSavePreset(value, "gain")}/>
 
-                    <Knob
-                        label="BPM"
-                        setValue={setBpm}
-                        minValue={20}
-                        maxValue={500}
-                        sensitivity={4}
-                    />
                 </div>
 
                 <div className="flex items-center gap-3">
