@@ -13,7 +13,6 @@ import usePresetStore from "@/services/presetStore";
 import { SynthWrapper } from "@/app/context/synthIdContext";
 import Presets from "../presets";
 import Button from "../UI Control/Control/button";
-import { indexFingerBus } from "@/services/ControlManager";
 import FistControl from "./fistControl";
 
 interface GlobalSynthControllerProps {

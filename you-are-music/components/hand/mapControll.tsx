@@ -1,19 +1,25 @@
 'use client'
 
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { indexFingerBus, leftHandYBus, middleFingerBus, pinkyFingerBus, Point, rightHandYBus, ringFingerBus } from "@/services/ControlManager";
+import { leftHandXBus, leftHandYBus, leftIndexFingerBus, leftMiddleFingerBus, leftPinkyFingerBus, leftRingFingerBus, Point, rightHandXBus, rightHandYBus, rightIndexFingerBus, rightMiddleFingerBus, rightPinkyFingerBus, rightRingFingerBus } from "@/services/ControlManager";
 
 interface MapControllProps {
-    mapKnobValue: (value: number) => void;
+    mapKnobValue: (value: number | null) => void;
 }
 const MapControll = ({ mapKnobValue }: MapControllProps) => {
 
     const [availableKeypoints, setAvailableKeypoints] = useState({
-        indexFinger: { name: "Index Finger", controlManager: indexFingerBus },
-        middleFinger: { name: "Middle Finger", controlManager: middleFingerBus },
-        ringFinger: { name: "Ring Finger", controlManager: ringFingerBus },
-        pinkyFinger: { name: "Pinky Finger", controlManager: pinkyFingerBus },
+        leftIndexFinger: { name: "Left Index Finger", controlManager: leftIndexFingerBus },
+        leftMiddleFinger: { name: "Left Middle Finger", controlManager: leftMiddleFingerBus },
+        leftPinkyFinger: { name: "Left Pinky Finger", controlManager: leftPinkyFingerBus },
+        leftRingFinger: { name: "Left Ring Finger", controlManager: leftRingFingerBus },
+        leftHandX: { name: "Left Hand X", controlManager: leftHandXBus },
         leftHandY: { name: "Left Hand Y", controlManager: leftHandYBus },
+        rightIndexFinger: { name: "Right Index Finger", controlManager: rightIndexFingerBus },
+        rightMiddleFinger: { name: "Right Middle Finger", controlManager: rightMiddleFingerBus },
+        rightPinkyFinger: { name: "Right Pinky Finger", controlManager: rightPinkyFingerBus },
+        rightRingFinger: { name: "Right Ring Finger", controlManager: rightRingFingerBus },
+        rightHandX: { name: "Right Hand X", controlManager: rightHandXBus },
         rightHandY: { name: "Right Hand Y", controlManager: rightHandYBus },
     });
 

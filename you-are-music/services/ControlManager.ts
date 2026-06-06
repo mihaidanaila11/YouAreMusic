@@ -1,4 +1,4 @@
-export type Subscriber = (fingerDistance: number) => void;
+export type Subscriber = (fingerDistance: number | null) => void;
 export type Point = {
     x: number,
     y: number,
@@ -7,7 +7,7 @@ export type Point = {
 export class ControlManager{
     private subscribers = new Set<Subscriber>();
 
-    publish(fingerDistance: number){
+    publish(fingerDistance: number | null){
         this.subscribers.forEach(listener => {
             listener(fingerDistance);
         });
@@ -24,6 +24,23 @@ export class ControlManager{
     }
 };
 
-const [indexFingerBus, middleFingerBus, ringFingerBus, pinkyFingerBus, leftHandYBus, rightHandYBus] = new Array(6).fill(null).map(() => new ControlManager());
+const [leftIndexFingerBus, 
+    leftMiddleFingerBus, 
+    leftRingFingerBus, 
+    leftPinkyFingerBus, 
 
-export { indexFingerBus, middleFingerBus, ringFingerBus, pinkyFingerBus, leftHandYBus, rightHandYBus };
+    rightIndexFingerBus,
+    rightMiddleFingerBus,
+    rightRingFingerBus,
+    rightPinkyFingerBus,
+    
+    leftHandYBus,
+    leftHandXBus,
+    rightHandYBus,
+    rightHandXBus,
+
+    ] = new Array(12).fill(null).map(() => new ControlManager());
+
+export { leftIndexFingerBus, leftMiddleFingerBus, leftRingFingerBus, leftPinkyFingerBus,
+    rightIndexFingerBus, rightMiddleFingerBus, rightRingFingerBus, rightPinkyFingerBus,
+    leftHandYBus, leftHandXBus, rightHandYBus, rightHandXBus };

@@ -230,7 +230,8 @@ const Knob = ({ setValue, minValue = 0, maxValue = 100, label, defaultValue = ma
         { label: "Bind to...", action: () => setShowBindMenu(prev => !prev) }
     ]
 
-    const mapKnobValue = useCallback((value: number) => {
+    const mapKnobValue = useCallback((value: number | null) => {
+        if(value === null) return;
         const mappedValue = mapValues(value, 0, 1, minValue, maxValue);
         const finalValue = mapMiddleware ? mapMiddleware(mappedValue, minValue, maxValue) : mappedValue;
         setCurrent(finalValue);

@@ -1,4 +1,4 @@
-import { indexFingerBus, leftHandYBus, middleFingerBus, pinkyFingerBus, rightHandYBus, ringFingerBus } from '@/services/ControlManager';
+import { leftHandXBus, leftHandYBus, leftIndexFingerBus, leftMiddleFingerBus, leftPinkyFingerBus, leftRingFingerBus, rightHandXBus, rightHandYBus, rightIndexFingerBus, rightMiddleFingerBus, rightPinkyFingerBus, rightRingFingerBus } from '@/services/ControlManager';
 import { minMaxNormalize, pointsDistance } from '@/utils/Math';
 import { FilesetResolver, HandLandmarker, Landmark } from '@mediapipe/tasks-vision';
 import { RefObject, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,7 +18,7 @@ export interface PredictionBox{
 export interface ModelPrediction{
     predictionBox?: PredictionBox,
     features: Landmark[],
-    hand: "Left" | "Right",
+    hand: string,
 }
 
 interface DistanceLimit{
@@ -125,7 +125,14 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
         const timeStamp = performance.now();
         const prediction = handLandmarker.detectForVideo(videoStream.current, timeStamp);
 
+        const leftBuses = [leftIndexFingerBus, leftMiddleFingerBus, leftRingFingerBus, leftPinkyFingerBus] 
+        const rightBuses = [rightIndexFingerBus, rightMiddleFingerBus, rightRingFingerBus, rightPinkyFingerBus]
+
+
         if(!prediction || !prediction.landmarks || prediction.landmarks.length <= 0){
+            setPrediction(null);
+            leftBuses.forEach(bus => bus.publish(null));
+            rightBuses.forEach(bus => bus.publish(null));
             requestAnimationFrame(predict);
             return;
         }
@@ -135,55 +142,70 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             height: videoStream.current.height,
         }
 
-        
 
-        const preductions: ModelPrediction[] = prediction.landmarks.map( landmarkList => {
+        const predictions: ModelPrediction[] = prediction.landmarks.map( (landmarkList, index) => {
             const landmarks: Landmark[] = landmarkList.map(landmark => {
                 return{
                     x: landmark.x,
                     y: landmark.y,
                     z: landmark.z,
-                    // asta e stanga/dreapta, nu e vizibilitate
                     visibility: landmark.visibility,
                 }
             });
 
-            return{features: landmarks, hand: "Left"}
+            return{features: landmarks, hand: prediction.handedness[index][0].categoryName}
         });
 
-        preductions.forEach(prediction => {
-            const middleBasePointX = prediction.features[9].x;
-            if(middleBasePointX < 1/2){
-                prediction.hand = "Right";
-                rightHandYBus.publish(
-                    minMaxNormalize(prediction.features[9].y, 0, 1)
-                );
-            }
-            else{
-                leftHandYBus.publish(
-                    minMaxNormalize(prediction.features[9].y, 0, 1)
-                );
-            }
-        });
 
         // controlBus.publish(preductions[0].features[0].x, preductions[0].features[0].y);
-        const wristPoint = { x: preductions[0].features[0].x, y: preductions[0].features[0].y };
-        const middleBasePoint = { x: preductions[0].features[9].x, y: preductions[0].features[9].y };
+        const [indexFingerID, middleFingerID, ringFingerID, pinkyFingerID,
+             thumbID, wristID, middleBaseID] = [8, 12, 16, 20, 4, 0, 9];
+
+        const distances = predictions.map(pred => {
+            const wristPoint = { x: pred.features[wristID].x, y: pred.features[wristID].y };
+            const middleBasePoint = { x: pred.features[middleBaseID].x, y: pred.features[middleBaseID].y };
+            const wristToMiddleBaseDistance = pointsDistance(wristPoint, middleBasePoint);
+
+            const thumbPoint = { x: pred.features[thumbID].x, y: pred.features[thumbID].y };
+
+            const indexPoint = { x: pred.features[indexFingerID].x, y: pred.features[indexFingerID].y };
+            const middlePoint = { x: pred.features[middleFingerID].x, y: pred.features[middleFingerID].y };
+            const ringPoint = { x: pred.features[ringFingerID].x, y: pred.features[ringFingerID].y };
+            const pinkyPoint = { x: pred.features[pinkyFingerID].x, y: pred.features[pinkyFingerID].y };
+
+            const indexFingerDistance = pointsDistance(indexPoint, thumbPoint) / wristToMiddleBaseDistance;
+            const middleFingerDistance = pointsDistance(middlePoint, thumbPoint) / wristToMiddleBaseDistance;
+            const ringFingerDistance = pointsDistance(ringPoint, thumbPoint) / wristToMiddleBaseDistance;
+            const pinkyFingerDistance = pointsDistance(pinkyPoint, thumbPoint) / wristToMiddleBaseDistance;
+
+            return {
+                indexFingerDistance,
+                middleFingerDistance,
+                ringFingerDistance,
+                pinkyFingerDistance,
+                hand: pred.hand,
+            }
+        })
+
+        
+
+        const wristPoint = { x: predictions[0].features[0].x, y: predictions[0].features[0].y };
+        const middleBasePoint = { x: predictions[0].features[9].x, y: predictions[0].features[9].y };
         const wristToMiddleBaseDistance = pointsDistance(wristPoint, middleBasePoint);
 
-        const thumbPoint = { x: preductions[0].features[4].x, y: preductions[0].features[4].y };
+        const thumbPoint = { x: predictions[0].features[4].x, y: predictions[0].features[4].y };
 
-        const indexPoint = { x: preductions[0].features[8].x, y: preductions[0].features[8].y };
-        const middlePoint = { x: preductions[0].features[12].x, y: preductions[0].features[12].y };
-        const ringPoint = { x: preductions[0].features[16].x, y: preductions[0].features[16].y };
-        const pinkyPoint = { x: preductions[0].features[20].x, y: preductions[0].features[20].y };
+        const indexPoint = { x: predictions[0].features[8].x, y: predictions[0].features[8].y };
+        const middlePoint = { x: predictions[0].features[12].x, y: predictions[0].features[12].y };
+        const ringPoint = { x: predictions[0].features[16].x, y: predictions[0].features[16].y };
+        const pinkyPoint = { x: predictions[0].features[20].x, y: predictions[0].features[20].y };
 
         const indexFingerDistance = pointsDistance(indexPoint, thumbPoint) / wristToMiddleBaseDistance;
         const middleFingerDistance = pointsDistance(middlePoint, thumbPoint) / wristToMiddleBaseDistance;
         const ringFingerDistance = pointsDistance(ringPoint, thumbPoint) / wristToMiddleBaseDistance;
         const pinkyFingerDistance = pointsDistance(pinkyPoint, thumbPoint) / wristToMiddleBaseDistance;
 
-        setPrediction(preductions);
+        setPrediction(predictions);
         requestAnimationFrame(predict);
 
         lastPredictionTime.current = performance.now();
@@ -288,18 +310,30 @@ export default function HandTracker({ videoStream, setPrediction } : HandTracker
             return;
         }
 
-        const normalizedDistances = [
-            minMaxNormalize(indexFingerDistance, indexFingerLimits.current.min, indexFingerLimits.current.max),
-            minMaxNormalize(middleFingerDistance, middleFingerLimits.current.min, middleFingerLimits.current.max),
-            minMaxNormalize(ringFingerDistance, ringFingerLimits.current.min, ringFingerLimits.current.max),
-            minMaxNormalize(pinkyFingerDistance, pinkyFingerLimits.current.min, pinkyFingerLimits.current.max),
-        ].map(value => Math.max(0, Math.min(value, 1)));
+        const normalizedDistances = distances.map(distance => {
+            return [
+                minMaxNormalize(distance.indexFingerDistance, indexFingerLimits.current.min, indexFingerLimits.current.max),
+                minMaxNormalize(distance.middleFingerDistance, middleFingerLimits.current.min, middleFingerLimits.current.max),
+                minMaxNormalize(distance.ringFingerDistance, ringFingerLimits.current.min, ringFingerLimits.current.max),
+                minMaxNormalize(distance.pinkyFingerDistance, pinkyFingerLimits.current.min, pinkyFingerLimits.current.max)
+            ].map(value => Math.max(0, Math.min(value, 1)));
+        });
 
-        indexFingerBus.publish(normalizedDistances[0]);
-        middleFingerBus.publish(normalizedDistances[1]);
-        ringFingerBus.publish(normalizedDistances[2]);
-        pinkyFingerBus.publish(normalizedDistances[3]);
+        
+        normalizedDistances.forEach( (fingerDistances, index) => {
+            const buses = distances[index].hand === "Left" ? leftBuses : rightBuses;
+            buses.forEach((bus, i) => {
+                bus.publish(fingerDistances[i]);
+            });
+        });
 
+        predictions.forEach(pred => {
+            const yBus = pred.hand === "Left" ? leftHandYBus : rightHandYBus;
+            const xBus = pred.hand === "Left" ? leftHandXBus : rightHandXBus;
+
+            yBus.publish(pred.features[0].y);
+            xBus.publish(pred.features[0].x);
+        });
     }
 
     return(
