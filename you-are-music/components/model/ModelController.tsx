@@ -108,8 +108,8 @@ const ModelController = () => {
 
 
             <div className='relative w-60'>
-                <canvas width={640} height={480}
-                    ref={overlayCanvas} className='absolute top-0 left-0 w-full'></canvas>
+                <canvas 
+                    ref={overlayCanvas} className='absolute top-0 left-0 w-full h-full'></canvas>
                 <Webcam videoRef={videoStream} />
             </div>
         </>
